@@ -1,0 +1,23 @@
+@media (max-width: 48rem) {
+  /* styles for 210px and smaller */
+  .main-nav {
+    display: none; /* hide nav links */
+    flex-direction: column;
+    background-color: var(--color-bg-primary);
+    position: absolute;
+    top: 60px; /* below header */
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    box-shadow: var(--shadow-sm);
+  }
+   .header-actions {
+    gap: 0.5rem; /* tighter spacing for mobile */
+  }
+  .hamburger-btn {
+    display: block; 
+  }
+  .main-nav.active {
+    display: flex; /* show when active */
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "climatelens",
+  "version": "1.0.0",
+  "description": "Weather-based clothing recommendation app for WDD 330",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build --emptyOutDir",
+    "preview": "vite preview"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^8.0.16"
+  }
+}

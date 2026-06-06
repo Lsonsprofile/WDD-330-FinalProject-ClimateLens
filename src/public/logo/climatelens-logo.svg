@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" width="520" height="120">
+  <defs>
+    <style>
+      .cls-primary { fill: #2563eb; }
+      .cls-secondary { fill: #1e293b; }
+      .cls-stroke { stroke: #2563eb; stroke-width: 4.5; stroke-linecap: round; }
+      .cls-text-climate { font-family: 'Inter', system-ui, -apple-system, sans-serif; font-size: 58px; font-weight: 800; letter-spacing: -3px; fill: #2563eb; }
+      .cls-text-lens { font-family: 'Inter', system-ui, -apple-system, sans-serif; font-size: 58px; font-weight: 800; letter-spacing: -3px; fill: #1e293b; }
+    </style>
+  </defs>
+  <g transform="translate(10, 10)">
+    <!-- Sun Rays -->
+    <g class="cls-stroke">
+      <line x1="32" y1="32" x2="22" y2="22" />
+      <line x1="46" y1="24" x2="42" y2="12" />
+      <line x1="26" y1="46" x2="14" y2="44" />
+    </g>
+    <!-- Sun backing circle -->
+    <circle cx="44" cy="44" r="14" fill="#2563eb" opacity="0.15" />
+    <!-- Main Cloud shape -->
+    <path class="cls-primary" d="M 32,74 C 23,74 16,67 16,58 C 16,50 22,43 30,42 C 32,30 42,22 54,22 C 65,22 74,29 77,39 C 85,40 90,47 90,55 C 90,64 83,74 72,74 Z" />
+  </g>
+  <!-- Text Lockup -->
+  <text x="115" y="76">
+    <tspan class="cls-text-climate">Climate</tspan><tspan class="cls-text-lens">Lens</tspan>
+  </text>
+</svg>
