@@ -1,4 +1,4 @@
-// Load an HTML file and return its contents
+// load an HTML file and return its contents
 export async function loadTemplate(path) {
   const response = await fetch(path);
 
@@ -9,10 +9,9 @@ export async function loadTemplate(path) {
   return await response.text();
 }
 
-// Insert template into an element and run callback if provided
+// insert template into an element and run callback if provided
 export function renderWithTemplate(template, parentElement, callback, data) {
   if (!parentElement) {
-    console.warn('renderWithTemplate: parentElement not found');
     return;
   }
 
@@ -23,10 +22,9 @@ export function renderWithTemplate(template, parentElement, callback, data) {
   }
 }
 
-// Load header and footer partials
+// load header and footer partials
 export async function loadHeaderFooter() {
   try {
-    // Load header
     const headerTemplate = await loadTemplate('/partials/header.html');
     const headerElement = document.getElementById('main-header');
 
@@ -36,7 +34,6 @@ export async function loadHeaderFooter() {
       });
     }
 
-    // Load footer
     const footerTemplate = await loadTemplate('/partials/footer.html');
     const footerElement = document.getElementById('main-footer');
 
@@ -45,16 +42,15 @@ export async function loadHeaderFooter() {
     }
 
   } catch (error) {
-    console.error('Failed to load header/footer:', error);
+    // failed to load header/footer
   }
 }
 
-// Handle mobile navigation menu
+// handle mobile navigation menu
 export function initHamburgerMenu() {
   const hamburgerBtn = document.getElementById('hamburger-toggle');
 
   if (!hamburgerBtn) {
-    console.warn('Hamburger button not found');
     return;
   }
 
@@ -62,17 +58,16 @@ export function initHamburgerMenu() {
   const mobileNav = document.getElementById('nav-bar');
 
   if (!mobileNav) {
-    console.warn('Navigation element not found');
     return;
   }
 
-  // Replace button to prevent duplicate event listeners
+  // replace button to prevent duplicate event listeners
   const newBtn = hamburgerBtn.cloneNode(true);
   hamburgerBtn.parentNode.replaceChild(newBtn, hamburgerBtn);
 
   const newIcon = newBtn.querySelector('img');
 
-  // Open and close menu
+  // open and close menu
   newBtn.addEventListener('click', (e) => {
     e.stopPropagation();
 
@@ -87,7 +82,7 @@ export function initHamburgerMenu() {
     mobileNav.classList.toggle('active');
   });
 
-  // Close menu when clicking outside
+  // close menu when clicking outside
   const closeNav = (e) => {
     const isClickInside =
       newBtn.contains(e.target) ||
@@ -102,11 +97,10 @@ export function initHamburgerMenu() {
     }
   };
 
-  document.removeEventListener('click', closeNav);
   document.addEventListener('click', closeNav);
 }
 
-// Format current time using a timezone
+// format current time using a timezone
 export function formatLocalTime(timezone = 'UTC') {
   const now = new Date();
 
@@ -118,7 +112,7 @@ export function formatLocalTime(timezone = 'UTC') {
   });
 }
 
-// Format today's date
+// format today's date
 export function formatFullDate() {
   const now = new Date();
 
@@ -130,7 +124,7 @@ export function formatFullDate() {
   });
 }
 
-// Convert Unix timestamp to readable time
+// convert Unix timestamp to readable time
 export function formatUnixTime(unixTimestamp) {
   const date = new Date(unixTimestamp * 1000);
 
@@ -139,27 +133,4 @@ export function formatUnixTime(unixTimestamp) {
     minute: '2-digit',
     hour12: true
   });
-}
-
-// Initialize app when page is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-
-    // Load header/footer if not already rendered
-    if (!document.getElementById('main-header')?.children.length) {
-      loadHeaderFooter();
-    } else {
-      initHamburgerMenu();
-    }
-
-  });
-} else {
-
-  // Page already loaded
-  if (!document.getElementById('main-header')?.children.length) {
-    loadHeaderFooter();
-  } else {
-    initHamburgerMenu();
-  }
-
 }
