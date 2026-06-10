@@ -41,7 +41,7 @@ body {
   flex-direction: column;
   margin: 0;
   padding: 0;
-  background-image: url('./public/image/background-image.webp');
+  background-image: url('/public/image/background-image.webp');
   background-size: cover;
   background-attachment: fixed;
 }
