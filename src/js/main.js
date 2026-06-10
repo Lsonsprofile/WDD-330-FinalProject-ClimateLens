@@ -198,8 +198,8 @@ function setupEventListeners() {
 // initialize the application
 async function init() {
   try {
-    await loadHeaderFooter();
-    initHamburgerMenu();
+    await loadHeaderFooter();  // already calls initHamburgerMenu inside
+    // REMOVE: initHamburgerMenu();  <-- this was the duplicate
     setupEventListeners();
     showLoading();
     await loadInitialWeather();

@@ -47,6 +47,7 @@ export async function loadHeaderFooter() {
 }
 
 // handle mobile navigation menu
+// handle mobile navigation menu
 export function initHamburgerMenu() {
   const hamburgerBtn = document.getElementById('hamburger-toggle');
 
@@ -54,27 +55,28 @@ export function initHamburgerMenu() {
     return;
   }
 
-  const hamburgerIcon = hamburgerBtn.querySelector('img');
   const mobileNav = document.getElementById('nav-bar');
 
   if (!mobileNav) {
     return;
   }
 
-  // replace button to prevent duplicate event listeners
-  const newBtn = hamburgerBtn.cloneNode(true);
-  hamburgerBtn.parentNode.replaceChild(newBtn, hamburgerBtn);
+  // check if already initialized to prevent duplicate listeners
+  if (hamburgerBtn.dataset.initialized === 'true') {
+    return;
+  }
+  hamburgerBtn.dataset.initialized = 'true';
 
-  const newIcon = newBtn.querySelector('img');
+  const hamburgerIcon = hamburgerBtn.querySelector('img');
 
   // open and close menu
-  newBtn.addEventListener('click', (e) => {
+  hamburgerBtn.addEventListener('click', (e) => {
     e.stopPropagation();
 
     const isOpen = mobileNav.classList.contains('active');
 
-    if (newIcon) {
-      newIcon.src = isOpen
+    if (hamburgerIcon) {
+      hamburgerIcon.src = isOpen
         ? '/icons/hamburger-open.svg'
         : '/icons/hamburger-close.svg';
     }
@@ -83,21 +85,19 @@ export function initHamburgerMenu() {
   });
 
   // close menu when clicking outside
-  const closeNav = (e) => {
+  document.addEventListener('click', (e) => {
     const isClickInside =
-      newBtn.contains(e.target) ||
+      hamburgerBtn.contains(e.target) ||
       mobileNav.contains(e.target);
 
     if (!isClickInside && mobileNav.classList.contains('active')) {
       mobileNav.classList.remove('active');
 
-      if (newIcon) {
-        newIcon.src = '/icons/hamburger-open.svg';
+      if (hamburgerIcon) {
+        hamburgerIcon.src = '/icons/hamburger-open.svg';
       }
     }
-  };
-
-  document.addEventListener('click', closeNav);
+  });
 }
 
 // format current time using a timezone

@@ -13,7 +13,7 @@ export function renderLocationBar(locationData) {
         <span class="location-name">${locationData.fullName}</span>
       </div>
       <div class="time-info">
-        <span class="time-icon">🕒</span>
+        <img src="/icons/time.svg" alt="Time icon" class="time-icon">
         <span class="local-time">${time}</span>
         <span class="local-date">${date}</span>
       </div>
@@ -56,7 +56,7 @@ export function renderCurrentWeather(weatherData) {
   const html = `
     <div class="weather-card">
       <div class="card-header">
-        <span class="header-icon">☀️</span>
+        <img src="/icons/weather.svg" alt="Weather icon" class="header-icon">
         <span class="header-title">CURRENT WEATHER</span>
       </div>
 
@@ -77,7 +77,7 @@ export function renderCurrentWeather(weatherData) {
 
       <div class="stats-row">
         <div class="stat">
-          <span class="stat-icon">💧</span>
+          <img src="/icons/humidity.svg" alt="Humidity icon" class="stat-icon">
           <div class="stat-text">
             <p class="stat-label">Humidity</p>
             <p class="stat-value">${humidity}%</p>
@@ -85,7 +85,7 @@ export function renderCurrentWeather(weatherData) {
         </div>
 
         <div class="stat">
-          <span class="stat-icon">💨</span>
+          <img src="/icons/wind.svg" alt="Wind icon" class="stat-icon">
           <div class="stat-text">
             <p class="stat-label">Wind</p>
             <p class="stat-value">${windSpeed} km/h</p>
@@ -94,7 +94,7 @@ export function renderCurrentWeather(weatherData) {
         </div>
 
         <div class="stat">
-          <span class="stat-icon">☀️</span>
+          <img src="/icons/uv-index.svg" alt="UV Index icon" class="stat-icon">
           <div class="stat-text">
             <p class="stat-label">UV Index</p>
             <p class="stat-value">${uvText}</p>
@@ -102,7 +102,7 @@ export function renderCurrentWeather(weatherData) {
         </div>
 
         <div class="stat">
-          <span class="stat-icon">👁️</span>
+          <img src="/icons/visibility.svg" alt="Visibility icon" class="stat-icon">
           <div class="stat-text">
             <p class="stat-label">Visibility</p>
             <p class="stat-value">${visibility} km</p>
@@ -112,7 +112,7 @@ export function renderCurrentWeather(weatherData) {
 
       <div class="stats-row second-row">
         <div class="stat">
-          <span class="stat-icon">📊</span>
+          <img src="/icons/pressure.svg" alt="Pressure icon" class="stat-icon">
           <div class="stat-text">
             <p class="stat-label">Pressure</p>
             <p class="stat-value">${pressure} hPa</p>
@@ -120,7 +120,7 @@ export function renderCurrentWeather(weatherData) {
         </div>
 
         <div class="stat">
-          <span class="stat-icon">☁️</span>
+          <img src="/icons/clouds.svg" alt="Cloud Cover icon" class="stat-icon">
           <div class="stat-text">
             <p class="stat-label">Cloud Cover</p>
             <p class="stat-value">${cloudCover}%</p>
@@ -128,7 +128,7 @@ export function renderCurrentWeather(weatherData) {
         </div>
 
         <div class="stat">
-          <span class="stat-icon">💧</span>
+          <img src="/icons/dew-point.svg" alt="Dew Point icon" class="stat-icon">
           <div class="stat-text">
             <p class="stat-label">Dew Point</p>
             <p class="stat-value">${dewPoint}°C</p>
@@ -136,7 +136,7 @@ export function renderCurrentWeather(weatherData) {
         </div>
 
         <div class="stat">
-          <span class="stat-icon">🌧️</span>
+          <img src="/icons/rain-chance.svg" alt="Rain Chance icon" class="stat-icon">
           <div class="stat-text">
             <p class="stat-label">Rain Chance</p>
             <p class="stat-value">${rainChance}%</p>
@@ -146,12 +146,12 @@ export function renderCurrentWeather(weatherData) {
 
       <div class="footer-times">
         <div class="time-slot">
-          <span class="time-icon">🌅</span>
+          <img src="/icons/sunrise.svg" alt="Sunrise icon" class="time-icon">
           <span class="time-label">Sunrise</span>
           <span class="time-value">${sunrise}</span>
         </div>
         <div class="time-slot">
-          <span class="time-icon">🌇</span>
+          <img src="/icons/sunset.svg" alt="Sunset icon" class="time-icon">
           <span class="time-label">Sunset</span>
           <span class="time-value">${sunset}</span>
         </div>
