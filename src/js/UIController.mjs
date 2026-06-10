@@ -166,6 +166,29 @@ export function renderCurrentWeather(weatherData) {
   }
 }
 
+// render 5-day forecast
+export function renderForecast(forecastData) {
+  if (!forecastData || forecastData.length === 0) return;
+
+  const forecastHtml = forecastData.map(day => {
+    const iconUrl = getWeatherIconUrl(day.icon, '4x');
+    
+    return `
+      <div class="forecast-day">
+        <p class="forecast-day-name">${day.day}</p>
+        <img src="${iconUrl}" alt="${day.condition}" class="forecast-icon">
+        <p class="forecast-high">${day.high}°</p>
+        <p class="forecast-low">${day.low}°</p>
+      </div>
+    `;
+  })
+
+  const weatherContainer = document.getElementById('weather-container');
+  if (weatherContainer) {
+    weatherContainer.insertAdjacentHTML('afterend', html);
+  }
+}
+
 // render compact weather for saved locations
 export function renderCompactWeather(weatherData, locationData) {
   const temp = weatherData.temp;

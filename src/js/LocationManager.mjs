@@ -1,14 +1,11 @@
+// API config
+const OPENWEATHER_API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+const CSV2GEO_API_KEY = import.meta.env.VITE_CSV_GEO;
+
 // API URLs
 const OPENWEATHER_GEOCODE_URL = 'https://api.openweathermap.org/geo/1.0/reverse';
 const CSV2GEO_URL = 'https://csv2geo.com/api/v1/reverse';
 const OSM_URL = 'https://nominatim.openstreetmap.org/reverse';
-
-// API Keys
-const OPENWEATHER_API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
-const CSV2GEO_API_KEY = import.meta.env.VITE_CSV2GEO_API_KEY;
-
-// IP geolocation fallback (no API key needed)
-const IP_API_URL = 'https://ipapi.co/json/';
 
 // get timezone from coordinates using longitude
 function getTimezoneFromCoords(lat, lon) {
@@ -18,7 +15,7 @@ function getTimezoneFromCoords(lat, lon) {
   return `Etc/GMT${sign}${absOffset}`;
 }
 
-// OpenStreetMap Nominatim
+// OpenStreetMap Nominatim (free, no key)
 async function getCityFromCoordsOSM(lat, lon) {
   const url = `${OSM_URL}?lat=${lat}&lon=${lon}&format=json&addressdetails=1`;
   
@@ -72,7 +69,7 @@ async function getCityFromCoordsOSM(lat, lon) {
   }
 }
 
-// CSV2GEO - Commercial data fallback
+// CSV2GEO reverse geocoding
 async function getCityFromCoordsCSV2GEO(lat, lon) {
   if (!CSV2GEO_API_KEY) {
     return null;
@@ -126,7 +123,7 @@ async function getCityFromCoordsCSV2GEO(lat, lon) {
   }
 }
 
-// OpenWeather Geocoding
+// OpenWeather reverse geocoding
 async function getCityFromCoordsOpenWeather(lat, lon) {
   const url = `${OPENWEATHER_GEOCODE_URL}?lat=${lat}&lon=${lon}&limit=1&appid=${OPENWEATHER_API_KEY}`;
   
@@ -171,50 +168,6 @@ async function getCityFromCoordsOpenWeather(lat, lon) {
   }
 }
 
-// IP Geolocation (last resort)
-async function getLocationFromIP() {
-  try {
-    const response = await fetch(IP_API_URL);
-    if (!response.ok) throw new Error(`IP API error: ${response.status}`);
-    
-    const data = await response.json();
-    
-    const lat = data.latitude;
-    const lon = data.longitude;
-    const city = data.city || '';
-    const region = data.region || '';
-    const country = data.country_name || '';
-    
-    // timezone from IP API or calculate from coordinates
-    const timezone = data.timezone || getTimezoneFromCoords(lat, lon);
-    
-    let displayName;
-    if (city && region && city !== region) {
-      displayName = `${city}, ${region}, ${country}`;
-    } else if (city) {
-      displayName = `${city}, ${country}`;
-    } else if (region) {
-      displayName = `${region}, ${country}`;
-    } else {
-      displayName = country;
-    }
-    
-    return {
-      fullName: displayName,
-      locality: city || region,
-      city: city,
-      state: region,
-      country: country,
-      lat: lat,
-      lon: lon,
-      timezone: timezone,
-      source: 'IP Geolocation'
-    };
-  } catch (error) {
-    return null;
-  }
-}
-
 // Browser Geolocation (GPS)
 function getBrowserLocation() {
   return new Promise((resolve, reject) => {
@@ -242,11 +195,11 @@ function getBrowserLocation() {
   });
 }
 
-// Main function - get location (GPS → OSM → CSV2GEO → OpenWeather → IP)
+// get location (GPS → OSM → CSV2GEO → OpenWeather)
 export async function getLocation() {
   let lat, lon;
   
-  // try browser GPS for exact coordinates
+  // try browser GPS first
   try {
     const gpsPosition = await getBrowserLocation();
     lat = gpsPosition.lat;
@@ -270,31 +223,7 @@ export async function getLocation() {
     // GPS not available or denied
   }
   
-  // no GPS, try IP geolocation
-  const ipLocation = await getLocationFromIP();
-  if (ipLocation) {
-    lat = ipLocation.lat;
-    lon = ipLocation.lon;
-    
-    const osmLocation = await getCityFromCoordsOSM(lat, lon);
-    if (osmLocation) {
-      return osmLocation;
-    }
-    
-    const csv2geoLocation = await getCityFromCoordsCSV2GEO(lat, lon);
-    if (csv2geoLocation) {
-      return csv2geoLocation;
-    }
-    
-    const openweatherLocation = await getCityFromCoordsOpenWeather(lat, lon);
-    if (openweatherLocation) {
-      return openweatherLocation;
-    }
-    
-    return ipLocation;
-  }
-  
-  // ultimate fallback
+  // fallback to default
   return {
     fullName: 'Lagos, Nigeria',
     locality: 'Lagos',
@@ -308,7 +237,7 @@ export async function getLocation() {
   };
 }
 
-// Get location from coordinates (for saved locations)
+// get location from coordinates
 export async function getLocationFromCoords(lat, lon) {
   const osmLocation = await getCityFromCoordsOSM(lat, lon);
   if (osmLocation) {
@@ -340,7 +269,7 @@ export async function getLocationFromCoords(lat, lon) {
   };
 }
 
-// Save/Get locations from localStorage
+// localStorage functions
 export function saveLocation(location) {
   const saved = getSavedLocations();
   const exists = saved.some(loc => 
@@ -368,30 +297,29 @@ export function getSavedLocations() {
 export function removeLocation(index) {
   const saved = getSavedLocations();
   if (saved[index]) {
-    const removed = saved.splice(index, 1);
+    saved.splice(index, 1);
     localStorage.setItem('climatelens_locations', JSON.stringify(saved));
     return true;
   }
   return false;
 }
 
-// Update location when user changes it
+// update location and dispatch event
 export async function updateUserLocation(lat, lon) {
   const locationData = await getLocationFromCoords(lat, lon);
   
   if (locationData) {
-    const locationChangeEvent = new CustomEvent('locationChanged', {
+    const event = new CustomEvent('locationChanged', {
       detail: locationData
     });
-    window.dispatchEvent(locationChangeEvent);
-    
+    window.dispatchEvent(event);
     return locationData;
   }
   
   throw new Error('Failed to update location');
 }
 
-// Watch for location changes
+// watch for location changes
 export function onLocationChanged(callback) {
   window.addEventListener('locationChanged', (event) => {
     callback(event.detail);

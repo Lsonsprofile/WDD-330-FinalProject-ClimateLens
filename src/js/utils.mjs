@@ -1,4 +1,4 @@
-// load an HTML file and return its contents
+// load HTML file and return contents
 export async function loadTemplate(path) {
   const response = await fetch(path);
 
@@ -9,7 +9,7 @@ export async function loadTemplate(path) {
   return await response.text();
 }
 
-// insert template into an element and run callback if provided
+// insert template into element
 export function renderWithTemplate(template, parentElement, callback, data) {
   if (!parentElement) {
     return;
@@ -47,7 +47,6 @@ export async function loadHeaderFooter() {
 }
 
 // handle mobile navigation menu
-// handle mobile navigation menu
 export function initHamburgerMenu() {
   const hamburgerBtn = document.getElementById('hamburger-toggle');
 
@@ -55,19 +54,18 @@ export function initHamburgerMenu() {
     return;
   }
 
-  const mobileNav = document.getElementById('nav-bar');
-
-  if (!mobileNav) {
-    return;
-  }
-
-  // check if already initialized to prevent duplicate listeners
+  // prevent duplicate initialization
   if (hamburgerBtn.dataset.initialized === 'true') {
     return;
   }
   hamburgerBtn.dataset.initialized = 'true';
 
   const hamburgerIcon = hamburgerBtn.querySelector('img');
+  const mobileNav = document.getElementById('nav-bar');
+
+  if (!mobileNav) {
+    return;
+  }
 
   // open and close menu
   hamburgerBtn.addEventListener('click', (e) => {
@@ -100,7 +98,7 @@ export function initHamburgerMenu() {
   });
 }
 
-// format current time using a timezone
+// format current time using timezone
 export function formatLocalTime(timezone = 'UTC') {
   const now = new Date();
 

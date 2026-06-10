@@ -1,7 +1,12 @@
 import '../css/large.css';
 import '../css/small.css';
-import { loadHeaderFooter, initHamburgerMenu } from './utils.mjs';
+import { loadHeaderFooter } from './utils.mjs';
 import { getCompleteWeatherData } from './WeatherService.mjs';
+import { 
+  getProcessedForecast, 
+  getRainForecast, 
+  renderForecastHTML 
+} from './ForecastManager.mjs';
 import { 
   getLocation, 
   getSavedLocations, 
@@ -20,6 +25,11 @@ function showLoading() {
   if (container) {
     container.innerHTML = '<div class="loading">Loading weather...</div>';
   }
+  
+  const forecastContainer = document.getElementById('forecast-container');
+  if (forecastContainer) {
+    forecastContainer.innerHTML = '<div class="loading">Loading forecast...</div>';
+  }
 }
 
 // show error message
@@ -30,13 +40,23 @@ function showError(message) {
   }
 }
 
+// render forecast to page
+function renderForecast(processedForecast) {
+  const forecastContainer = document.getElementById('forecast-container');
+  if (!forecastContainer) return;
+  
+  if (!processedForecast || !processedForecast.daily) {
+    forecastContainer.innerHTML = '<div class="error">No forecast data</div>';
+    return;
+  }
+  
+  forecastContainer.innerHTML = renderForecastHTML(processedForecast);
+}
+
 // update header location text
 function updateHeaderLocation(locationData) {
   const locationText = document.getElementById('header-location-text');
-  
-  if (!locationText) {
-    return;
-  }
+  if (!locationText) return;
   
   if (locationData) {
     let displayName = locationData.fullName;
@@ -59,20 +79,27 @@ function updateHeaderLocation(locationData) {
 // fetch weather and update display
 async function displayWeather(lat, lon, locationData) {
   try {
+    // fetch forecast
+    const processedForecast = await getProcessedForecast(lat, lon);
+    renderForecast(processedForecast);
+    
+    // fetch current weather
     const weatherData = await getCompleteWeatherData(lat, lon);
     
+    // attach forecast data to weather object
+    weatherData.forecast = processedForecast;
+    weatherData.rainForecast = processedForecast ? getRainForecast(processedForecast) : null;
+    
     currentLocation = locationData;
-
     updateHeaderLocation(locationData);
 
     const locationWithTimezone = {
       ...locationData,
-      timezone: locationData.timezone || 'Africa/Lagos'
+      timezone: locationData.timezone || 'UTC'
     };
+    
     renderLocationBar(locationWithTimezone);
-
     renderCurrentWeather(weatherData);
-
     updateSaveButtonState(locationData);
 
   } catch (error) {
@@ -80,7 +107,7 @@ async function displayWeather(lat, lon, locationData) {
   }
 }
 
-// check if current location is saved and update button
+// check if location is saved
 function updateSaveButtonState(locationData) {
   const saveBtn = document.getElementById('save-location-btn');
   if (!saveBtn || !locationData) return;
@@ -92,11 +119,8 @@ function updateSaveButtonState(locationData) {
   );
   
   const saveText = saveBtn.querySelector('.save-text');
-  
-  if (isSaved) {
-    if (saveText) saveText.textContent = 'Saved';
-  } else {
-    if (saveText) saveText.textContent = 'Save';
+  if (saveText) {
+    saveText.textContent = isSaved ? 'Saved' : 'Save';
   }
 }
 
@@ -112,10 +136,9 @@ async function saveCurrentLocation() {
   
   const saveText = document.querySelector('#save-location-btn .save-text');
   if (saveText) {
-    const originalText = saveText.textContent;
     saveText.textContent = 'Saved!';
     setTimeout(() => {
-      saveText.textContent = originalText;
+      updateSaveButtonState(currentLocation);
     }, 1500);
   }
 }
@@ -132,25 +155,13 @@ async function loadInitialWeather() {
       const location = await getLocation();
       await displayWeather(location.lat, location.lon, location);
     } catch (error) {
-      showError('Unable to detect location. Please refresh or allow location access.');
+      showError('Unable to detect location. Please allow location access.');
     }
-  }
-}
-
-// manually update location from search or dropdown
-async function changeLocationToCity(lat, lon) {
-  try {
-    const newLocation = await updateUserLocation(lat, lon);
-    showLoading();
-    await displayWeather(newLocation.lat, newLocation.lon, newLocation);
-  } catch (error) {
-    showError('Could not change location');
   }
 }
 
 // setup event listeners
 function setupEventListeners() {
-  // listen for location changes from LocationManager
   onLocationChanged(async (newLocation) => {
     showLoading();
     await displayWeather(newLocation.lat, newLocation.lon, newLocation);
@@ -161,7 +172,6 @@ function setupEventListeners() {
   if (saveBtn) {
     const newSaveBtn = saveBtn.cloneNode(true);
     saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-    
     newSaveBtn.addEventListener('click', saveCurrentLocation);
   }
   
@@ -182,12 +192,11 @@ function setupEventListeners() {
     });
   }
   
-  // dropdown select handler
+  // dropdown
   const dropdownSelect = document.querySelector('.dropdown-select');
   if (dropdownSelect) {
     dropdownSelect.addEventListener('change', (e) => {
-      const value = e.target.value;
-      if (value === 'download-map') {
+      if (e.target.value === 'download-map') {
         alert('Map download feature coming soon!');
       }
       e.target.value = '';
@@ -195,11 +204,10 @@ function setupEventListeners() {
   }
 }
 
-// initialize the application
+// initialize
 async function init() {
   try {
-    await loadHeaderFooter();  // already calls initHamburgerMenu inside
-    // REMOVE: initHamburgerMenu();  <-- this was the duplicate
+    await loadHeaderFooter();
     setupEventListeners();
     showLoading();
     await loadInitialWeather();
@@ -208,5 +216,4 @@ async function init() {
   }
 }
 
-// start the app
 init();

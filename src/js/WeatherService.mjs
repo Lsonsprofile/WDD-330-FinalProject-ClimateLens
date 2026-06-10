@@ -32,14 +32,14 @@ export async function fetchForecast(lat, lon) {
   return await response.json();
 }
 
-// get city and country name from weather data
+// get city and country from weather data
 export function getLocationNameFromWeather(weatherData) {
   const city = weatherData.name || 'Unknown Location';
   const country = weatherData.sys?.country || '';
   return country ? `${city}, ${country}` : city;
 }
 
-// format sunrise and sunset time
+// format sunrise/sunset time
 export function formatSunTime(timestamp) {
   if (!timestamp) return 'N/A';
   return new Date(timestamp * 1000).toLocaleTimeString([], {
@@ -69,6 +69,58 @@ export function windDegToDirection(degrees) {
   return directions[index];
 }
 
+// process forecast into daily summary
+export function processForecastToDaily(forecastData) {
+  if (!forecastData || !forecastData.list) return [];
+
+  const dailyMap = new Map();
+
+  forecastData.list.forEach(item => {
+    const date = new Date(item.dt * 1000);
+    const dayKey = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const isToday = new Date().toLocaleDateString('en-US', { weekday: 'short' }) === dayKey;
+
+    if (!dailyMap.has(dayKey)) {
+      dailyMap.set(dayKey, {
+        day: isToday ? 'Today' : dayKey,
+        temps: [],
+        icons: [],
+        conditions: []
+      });
+    }
+
+    const day = dailyMap.get(dayKey);
+    day.temps.push(item.main.temp);
+    day.icons.push(item.weather[0].icon);
+    day.conditions.push(item.weather[0].main);
+  });
+
+  return Array.from(dailyMap.values()).slice(0, 5).map(day => ({
+    day: day.day,
+    high: Math.round(Math.max(...day.temps)),
+    low: Math.round(Math.min(...day.temps)),
+    icon: getMostFrequent(day.icons),
+    condition: getMostFrequent(day.conditions)
+  }));
+}
+
+// helper: get most frequent item
+function getMostFrequent(arr) {
+  const counts = {};
+  let max = 0;
+  let result = arr[0];
+  
+  arr.forEach(item => {
+    counts[item] = (counts[item] || 0) + 1;
+    if (counts[item] > max) {
+      max = counts[item];
+      result = item;
+    }
+  });
+  
+  return result;
+}
+
 // get all weather data in one object
 export async function getCompleteWeatherData(lat, lon) {
   const currentWeather = await fetchCurrentWeather(lat, lon);
@@ -85,7 +137,6 @@ export async function getCompleteWeatherData(lat, lon) {
     dewPoint = Math.round(temp - ((100 - humidity) / 5));
   }
   
-  // rain chance from forecast
   let rainChance = 0;
   if (forecastData && forecastData.list && forecastData.list[0]) {
     const nextForecast = forecastData.list[0];
@@ -116,6 +167,7 @@ export async function getCompleteWeatherData(lat, lon) {
     sunsetFormatted: formatSunTime(currentWeather.sys.sunset),
     cityName: currentWeather.name,
     countryCode: currentWeather.sys?.country || '',
-    locationName: getLocationNameFromWeather(currentWeather)
+    locationName: getLocationNameFromWeather(currentWeather),
+    forecast: processForecastToDaily(forecastData)
   };
 }
