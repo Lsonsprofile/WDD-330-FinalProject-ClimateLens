@@ -48,11 +48,12 @@ body {
 
 /* Main content wrapper */
 main {
+  position: relative;
   flex: 1;
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 4rem 0 0; /* top padding = header height */
 }
 
 /* Header - FIXED STICKY */
@@ -60,7 +61,7 @@ main {
   background-color: var(--color-bg-primary);
   box-shadow: var(--shadow-sm);
   padding: 0.5rem 0.5rem;
-  position: sticky;
+  position: fixed;
   top: 0;
   z-index: 1000;
   width: 100%;
@@ -450,7 +451,7 @@ footer {
 
 /* Forecast Container */
 .forecast-container {
-  margin: 10px 0;
+  margin: 10px auto;
   padding: 20px;
   background: linear-gradient(135deg, rgba(29, 75, 127, 0.5) 0%, rgba(12, 19, 27, 0.8) 100%);
   border-radius: 20px;
@@ -462,7 +463,7 @@ footer {
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 20px;
-    color: var(--color-white);
+    color: var(--color-bg-primary);
   }
 
   .forecast-grid {
@@ -472,27 +473,29 @@ footer {
     gap: 10px;
 
     .forecast-card {
-      background: var(--color-bg-primary);
+      background: var(--color-text-secondary);
       border-radius: 16px;
       padding: 16px;
       text-align: center;
       transition: transform 0.2s ease;
       box-shadow: var(--shadow-sm);
       flex: 1 1 120px;
+      min-width: 120px;
 
       &:hover {
         transform: translateY(-4px);
       }
 
       .forecast-day {
-        font-weight: 700;
-        font-size: 16px;
-        color: var(--color-text-primary);
+        font-weight: bold;
+        font-size: 20px;
+        color: var(--color-bg-primary);
       }
 
       .forecast-date {
         font-size: 11px;
-        color: var(--color-text-muted);
+        color: var(--color-bg-primary);
+        opacity: 0.7;
         margin-bottom: 12px;
       }
 
@@ -510,67 +513,41 @@ footer {
 
         .temp-high {
           font-weight: 700;
-          color: var(--color-text-primary);
+          color: var(--color-bg-primary);
         }
 
         .temp-low {
-          color: var(--color-text-muted);
+          color: var(--color-bg-primary);
+          opacity: 0.7;
         }
       }
 
       .forecast-condition {
         font-size: 13px;
-        color: var(--color-text-secondary);
+        color: var(--color-bg-primary);
         margin-bottom: 8px;
       }
 
       .forecast-details {
         display: flex;
         justify-content: center;
-        gap: 12px;
+        gap: 8px;
         font-size: 11px;
-        color: var(--color-text-muted);
+        color: var(--color-bg-primary);
+        opacity: 0.8;
         margin-top: 8px;
+
+        .detail-item {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .detail-icon {
+          width: 16px;
+          height: 16px;
+        }
       }
     }
   }
 }
-
-/* Compact weather card for saved locations */
-.compact-weather-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  background: var(--color-bg-secondary);
-  border-radius: 12px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: translateX(4px);
-    background: var(--color-sky-blue-light);
-  }
-
-  .compact-location {
-    font-weight: 600;
-    font-size: 14px;
-  }
-
-  .compact-temp {
-    font-size: 18px;
-    font-weight: bold;
-  }
-
-  .compact-icon {
-    width: 32px;
-    height: 32px;
-  }
-
-  .compact-condition {
-    font-size: 12px;
-    color: var(--color-text-secondary);
-  }
-}
-

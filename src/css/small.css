@@ -27,10 +27,15 @@
       display: flex;
     }
   }
+  .forecast-details {
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+  }
 }
 
 /* Weather Card Mobile */
-@media (max-width: 30rem) {
+@media (max-width: 38rem) {
   .weather-card {
     padding: 1.25rem 1rem;
     margin: 1.25rem auto;

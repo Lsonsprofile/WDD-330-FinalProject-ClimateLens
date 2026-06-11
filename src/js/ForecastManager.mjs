@@ -96,8 +96,8 @@ export function processForecastData(forecastData) {
     };
   });
 
-  // next 5 days excluding today
-  const next5Days = processedDaily.slice(1, 6);
+  // next 4 days excluding today
+  const next5Days = processedDaily.slice(1);;
 
   return {
     daily: next5Days,
@@ -282,7 +282,6 @@ export async function getProcessedForecast(lat, lon) {
   }
 }
 
-// render 5-day forecast to HTML
 export function renderForecastHTML(processedForecast) {
   if (!processedForecast || !processedForecast.daily || processedForecast.daily.length === 0) {
     return '<div class="forecast-error">No forecast data available</div>';
@@ -290,26 +289,40 @@ export function renderForecastHTML(processedForecast) {
   
   return `
     <div class="forecast-container">
-      <h3 class="forecast-title">5-Day Forecast</h3>
+      <h3 class="forecast-title">Future Forecast</h3>
       <div class="forecast-grid">
         ${processedForecast.daily.map(day => `
           <div class="forecast-card">
             <div class="forecast-day">${day.day}</div>
             <div class="forecast-date">${day.fullDate}</div>
+            
             <img 
               src="${getWeatherIconUrl(day.iconCode, '2x')}" 
               alt="${day.condition}"
               class="forecast-icon"
             >
+            
             <div class="forecast-temp">
               <span class="temp-high">${day.tempMax}°</span>
               <span class="temp-low">${day.tempMin}°</span>
             </div>
             <div class="forecast-condition">${day.condition}</div>
+            
             <div class="forecast-details">
-              <span>💧 ${day.humidityAvg}%</span>
-              <span>💨 ${day.windSpeedAvg} km/h</span>
-              ${day.rainChanceMax > 0 ? `<span>🌧️ ${day.rainChanceMax}%</span>` : ''}
+              <span class="detail-item">
+                <img src="/icons/humidity.svg" alt="humidity" class="detail-icon">
+                ${day.humidityAvg}%
+              </span>
+              <span class="detail-item">
+                <img src="/icons/wind.svg" alt="wind" class="detail-icon">
+                ${day.windSpeedAvg} km/h
+              </span>
+              ${day.rainChanceMax > 0 ? `
+                <span class="detail-item">
+                  <img src="/icons/rain-chance.svg" alt="rain" class="detail-icon">
+                  ${day.rainChanceMax}%
+                </span>
+              ` : ''}
             </div>
           </div>
         `).join('')}
