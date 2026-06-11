@@ -35,7 +35,6 @@
 body {
   font-family: var(--font-primary);
   color: var(--color-text-primary);
-  background-color: var(--color-bg-primary);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -58,7 +57,7 @@ main {
 
 /* Header - FIXED STICKY */
 .site-header {
-  background-color: var(--color-bg-primary);
+  background-color: rgba(255, 255, 255, 0.8);
   box-shadow: var(--shadow-sm);
   padding: 0.5rem 0.5rem;
   position: fixed;
