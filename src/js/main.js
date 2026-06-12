@@ -2,217 +2,233 @@ import '../css/large.css';
 import '../css/small.css';
 import { loadHeaderFooter } from './utils.mjs';
 import { getCompleteWeatherData } from './WeatherService.mjs';
-import { 
-  getProcessedForecast, 
-  getRainForecast, 
-  renderForecastHTML 
-} from './ForecastManager.mjs';
-import { 
-  getLocation, 
-  getSavedLocations, 
-  saveLocation, 
-  updateUserLocation,
-  onLocationChanged
-} from './LocationManager.mjs';
-import { renderCurrentWeather, renderLocationBar } from './UIController.mjs';
+import { getProcessedForecast, getHourlyForecast, getForecastForDay } from './ForecastManager.mjs';
+import { getLocation, searchCityByName, getSearchSuggestions, updateLocationFromCoords, getSavedLocations, saveLocation, onLocationChanged } from './LocationManager.mjs';
+import { renderCurrentWeather, renderLocationBar, renderHourly, renderForecast, renderDayModal, hideDayModal } from './UIController.mjs';
 
-// current location state
 let currentLocation = null;
+let currentForecast = null;
 
-// show loading spinner
 function showLoading() {
-  const container = document.getElementById('weather-container');
-  if (container) {
-    container.innerHTML = '<div class="loading">Loading weather...</div>';
-  }
-  
-  const forecastContainer = document.getElementById('forecast-container');
-  if (forecastContainer) {
-    forecastContainer.innerHTML = '<div class="loading">Loading forecast...</div>';
-  }
+  document.getElementById('weather-container').innerHTML = '<div class="loading">Loading...</div>';
+  document.getElementById('forecast-container').innerHTML = '';
+  document.getElementById('hourly-container').innerHTML = '';
 }
 
-// show error message
 function showError(message) {
-  const container = document.getElementById('weather-container');
-  if (container) {
-    container.innerHTML = `<div class="error">${message}</div>`;
-  }
+  document.getElementById('weather-container').innerHTML = `<div class="error">${message}</div>`;
 }
 
-// render forecast to page
-function renderForecast(processedForecast) {
-  const forecastContainer = document.getElementById('forecast-container');
-  if (!forecastContainer) return;
-  
-  if (!processedForecast || !processedForecast.daily) {
-    forecastContainer.innerHTML = '<div class="error">No forecast data</div>';
-    return;
-  }
-  
-  forecastContainer.innerHTML = renderForecastHTML(processedForecast);
+function updateHeader(city, country) {
+  const el = document.getElementById('header-location-text');
+  if (el) el.textContent = `${city}, ${country}`;
 }
 
-// update header location text
-function updateHeaderLocation(locationData) {
-  const locationText = document.getElementById('header-location-text');
-  if (!locationText) return;
-  
-  if (locationData) {
-    let displayName = locationData.fullName;
-    
-    if (locationData.city && locationData.country) {
-      displayName = `${locationData.city}, ${locationData.country}`;
-    } else if (locationData.fullName) {
-      const parts = locationData.fullName.split(',');
-      if (parts.length >= 2) {
-        displayName = `${parts[0].trim()}, ${parts[parts.length - 1].trim()}`;
-      } else {
-        displayName = locationData.fullName;
-      }
-    }
-    
-    locationText.textContent = displayName;
-  }
-}
-
-// fetch weather and update display
 async function displayWeather(lat, lon, locationData) {
   try {
-    // fetch forecast
-    const processedForecast = await getProcessedForecast(lat, lon);
-    renderForecast(processedForecast);
-    
-    // fetch current weather
     const weatherData = await getCompleteWeatherData(lat, lon);
     
-    // attach forecast data to weather object
-    weatherData.forecast = processedForecast;
-    weatherData.rainForecast = processedForecast ? getRainForecast(processedForecast) : null;
+    const enhanced = await updateLocationFromCoords(weatherData.lat, weatherData.lon, weatherData.cityName);
     
-    currentLocation = locationData;
-    updateHeaderLocation(locationData);
-
-    const locationWithTimezone = {
-      ...locationData,
-      timezone: locationData.timezone || 'UTC'
+    const city = enhanced.city !== 'Unknown' 
+      ? enhanced.city 
+      : locationData?.city || weatherData.cityName;
+    
+    const country = enhanced.country !== 'Unknown' 
+      ? enhanced.country 
+      : locationData?.country || weatherData.countryCode;
+    
+    const finalLocation = {
+      lat: weatherData.lat,
+      lon: weatherData.lon,
+      city,
+      country,
+      timezone: locationData?.timezone || enhanced.timezone,
+      fullName: `${city}, ${country}`
     };
     
-    renderLocationBar(locationWithTimezone);
+    const forecast = await getProcessedForecast(lat, lon);
+    currentForecast = forecast;
+    
+    currentLocation = finalLocation;
+    updateHeader(city, country);
+    
+    renderLocationBar(finalLocation);
     renderCurrentWeather(weatherData);
-    updateSaveButtonState(locationData);
+    renderHourly(getHourlyForecast(forecast, 24));
+    renderForecast(forecast);
+    setupDayClicks();
+    updateSaveBtn();
 
   } catch (error) {
+    console.error('Display weather error:', error);
     showError('Failed to load weather. Please try again.');
   }
 }
 
-// check if location is saved
-function updateSaveButtonState(locationData) {
-  const saveBtn = document.getElementById('save-location-btn');
-  if (!saveBtn || !locationData) return;
+function setupDayClicks() {
+  document.querySelectorAll('.forecast-card').forEach((card, i) => {
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => {
+      const day = getForecastForDay(currentForecast, i);
+      if (day) renderDayModal(day, currentForecast);
+    });
+  });
+}
+
+function updateSaveBtn() {
+  const btn = document.getElementById('save-location-btn');
+  if (!btn || !currentLocation) return;
   
-  const savedLocations = getSavedLocations();
-  const isSaved = savedLocations.some(loc => 
-    Math.abs(loc.lat - locationData.lat) < 0.001 && 
-    Math.abs(loc.lon - locationData.lon) < 0.001
+  const saved = getSavedLocations();
+  const isSaved = saved.some(l => 
+    Math.abs(l.lat - currentLocation.lat) < 0.001 && 
+    Math.abs(l.lon - currentLocation.lon) < 0.001
   );
   
-  const saveText = saveBtn.querySelector('.save-text');
-  if (saveText) {
-    saveText.textContent = isSaved ? 'Saved' : 'Save';
+  const text = btn.querySelector('.save-text');
+  if (text) text.textContent = isSaved ? 'Saved' : 'Save';
+}
+
+async function saveCurrent() {
+  if (!currentLocation) return;
+  saveLocation(currentLocation);
+  updateSaveBtn();
+  
+  const text = document.querySelector('#save-location-btn .save-text');
+  if (text) {
+    text.textContent = 'Saved!';
+    setTimeout(updateSaveBtn, 1500);
   }
 }
 
-// save current location
-async function saveCurrentLocation() {
-  if (!currentLocation) {
-    showError('No location to save');
+// AUTOCOMPLETE
+let debounceTimer;
+async function handleInput(e) {
+  const query = e.target.value.trim();
+  const suggestionsBox = document.getElementById('search-suggestions');
+  
+  if (!suggestionsBox) return;
+  
+  if (query.length < 2) {
+    suggestionsBox.innerHTML = '';
+    suggestionsBox.classList.add('hidden');
     return;
   }
   
-  saveLocation(currentLocation);
-  updateSaveButtonState(currentLocation);
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async () => {
+    const suggestions = await getSearchSuggestions(query);
+    
+    if (suggestions.length === 0) {
+      suggestionsBox.innerHTML = '';
+      suggestionsBox.classList.add('hidden');
+      return;
+    }
+    
+    suggestionsBox.innerHTML = suggestions.map(s => `
+      <div class="suggestion-item" data-lat="${s.lat}" data-lon="${s.lon}" data-city="${s.city}" data-country="${s.country}">
+        <span class="suggestion-name">${s.city}</span>
+        <span class="suggestion-country">${s.country}</span>
+      </div>
+    `).join('');
+    
+    suggestionsBox.classList.remove('hidden');
+    
+    suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const lat = parseFloat(item.dataset.lat);
+        const lon = parseFloat(item.dataset.lon);
+        const city = item.dataset.city;
+        const country = item.dataset.country;
+        
+        document.getElementById('city-search').value = `${city}, ${country}`;
+        suggestionsBox.innerHTML = '';
+        suggestionsBox.classList.add('hidden');
+        
+        showLoading();
+        displayWeather(lat, lon, { lat, lon, city, country });
+      });
+    });
+  }, 300);
+}
+
+async function handleSearch() {
+  const input = document.getElementById('city-search');
+  if (!input || !input.value.trim()) return;
   
-  const saveText = document.querySelector('#save-location-btn .save-text');
-  if (saveText) {
-    saveText.textContent = 'Saved!';
-    setTimeout(() => {
-      updateSaveButtonState(currentLocation);
-    }, 1500);
+  const cityName = input.value.trim();
+  showLoading();
+  
+  const result = await searchCityByName(cityName);
+  
+  if (result) {
+    await displayWeather(result.lat, result.lon, result);
+    input.value = '';
+  } else {
+    showError('City not found. Please try again.');
   }
 }
 
-// load initial weather
-async function loadInitialWeather() {
+// FIXED: Added loadInitial() function
+async function loadInitial() {
   const saved = getSavedLocations();
-
+  
   if (saved.length > 0) {
-    const loc = saved[0];
-    await displayWeather(loc.lat, loc.lon, loc);
+    await displayWeather(saved[0].lat, saved[0].lon, saved[0]);
   } else {
-    try {
-      const location = await getLocation();
-      await displayWeather(location.lat, location.lon, location);
-    } catch (error) {
-      showError('Unable to detect location. Please allow location access.');
+    showLoading();
+    const loc = await getLocation();
+    if (loc) {
+      await displayWeather(loc.lat, loc.lon, loc);
+    } else {
+      showError('Unable to load location. Please search for your city.');
     }
   }
 }
 
-// setup event listeners
-function setupEventListeners() {
-  onLocationChanged(async (newLocation) => {
+function setupEvents() {
+  onLocationChanged(loc => {
     showLoading();
-    await displayWeather(newLocation.lat, newLocation.lon, newLocation);
+    displayWeather(loc.lat, loc.lon, loc);
   });
   
-  // save button
-  const saveBtn = document.getElementById('save-location-btn');
-  if (saveBtn) {
-    const newSaveBtn = saveBtn.cloneNode(true);
-    saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-    newSaveBtn.addEventListener('click', saveCurrentLocation);
+  const searchBtn = document.getElementById('search-btn');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', handleSearch);
   }
   
-  // current location button
-  const locationBtn = document.getElementById('current-location-btn');
-  if (locationBtn) {
-    const newLocationBtn = locationBtn.cloneNode(true);
-    locationBtn.parentNode.replaceChild(newLocationBtn, locationBtn);
+  const searchInput = document.getElementById('city-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', handleInput);
     
-    newLocationBtn.addEventListener('click', async () => {
-      showLoading();
-      try {
-        const location = await getLocation();
-        await displayWeather(location.lat, location.lon, location);
-      } catch (error) {
-        showError('Could not refresh location');
-      }
+    searchInput.addEventListener('blur', () => {
+      setTimeout(() => {
+        document.getElementById('search-suggestions')?.classList.add('hidden');
+      }, 200);
+    });
+    
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSearch();
     });
   }
   
-  // dropdown
-  const dropdownSelect = document.querySelector('.dropdown-select');
-  if (dropdownSelect) {
-    dropdownSelect.addEventListener('change', (e) => {
-      if (e.target.value === 'download-map') {
-        alert('Map download feature coming soon!');
-      }
-      e.target.value = '';
-    });
-  }
+  document.getElementById('save-location-btn')?.addEventListener('click', saveCurrent);
+  
+  document.addEventListener('click', e => {
+    if (e.target.classList.contains('close-btn') || e.target.id === 'day-detail-modal') {
+      hideDayModal();
+    }
+  });
 }
 
-// initialize
 async function init() {
   try {
     await loadHeaderFooter();
-    setupEventListeners();
-    showLoading();
-    await loadInitialWeather();
+    setupEvents();
+    await loadInitial();
   } catch (error) {
-    showError('Failed to load app. Please refresh.');
+    showError('Failed to initialize app. Please refresh.');
   }
 }
 

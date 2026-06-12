@@ -1,13 +1,15 @@
-// API config
-const OPENWEATHER_API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
-const CSV2GEO_API_KEY = import.meta.env.VITE_CSV_GEO;
+const LOCATIONIQ_API_KEY = import.meta.env.VITE_LOCATIONIQ_API_KEY;
+const LOCATIONIQ_BASE_URL = import.meta.env.VITE_LOCATIONIQ_BASE_URL;
 
-// API URLs
-const OPENWEATHER_GEOCODE_URL = 'https://api.openweathermap.org/geo/1.0/reverse';
-const CSV2GEO_URL = 'https://csv2geo.com/api/v1/reverse';
-const OSM_URL = 'https://nominatim.openstreetmap.org/reverse';
+// Default location: Lagos, Nigeria
+const DEFAULT_LOCATION = {
+  lat: 6.5244,
+  lon: 3.3792,
+  city: 'Lagos',
+  country: 'Nigeria',
+  timezone: 'Africa/Lagos'
+};
 
-// get timezone from coordinates using longitude
 function getTimezoneFromCoords(lat, lon) {
   const offset = Math.round(lon / 15);
   const sign = offset >= 0 ? '+' : '-';
@@ -15,261 +17,164 @@ function getTimezoneFromCoords(lat, lon) {
   return `Etc/GMT${sign}${absOffset}`;
 }
 
-// OpenStreetMap Nominatim (free, no key)
-async function getCityFromCoordsOSM(lat, lon) {
-  const url = `${OSM_URL}?lat=${lat}&lon=${lon}&format=json&addressdetails=1`;
+// LocationIQ reverse geocoding
+async function reverseGeocode(lat, lon) {
+  if (!LOCATIONIQ_API_KEY) return null;
+  
+  const url = `${LOCATIONIQ_BASE_URL}/reverse.php?key=${LOCATIONIQ_API_KEY}&lat=${lat}&lon=${lon}&format=json`;
   
   try {
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'ClimateLens-App/1.0' }
-    });
-    
-    if (!response.ok) throw new Error(`OSM error: ${response.status}`);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`LocationIQ error: ${response.status}`);
     
     const data = await response.json();
     
-    if (data && data.address) {
-      const neighbourhood = data.address.neighbourhood || '';
-      const suburb = data.address.suburb || '';
-      const quarter = data.address.quarter || '';
-      const city = data.address.city || data.address.town || data.address.village || '';
-      const state = data.address.state || '';
-      const country = data.address.country || '';
-      
-      const timezone = getTimezoneFromCoords(lat, lon);
-      
-      const specificArea = neighbourhood || suburb || quarter;
-      let displayName;
-      
-      if (specificArea && city && specificArea !== city) {
-        displayName = `${specificArea}, ${city}, ${country}`;
-      } else if (city) {
-        displayName = `${city}, ${country}`;
-      } else if (specificArea) {
-        displayName = `${specificArea}, ${country}`;
-      } else {
-        displayName = data.display_name.split(',')[0] || `${city}, ${country}`;
-      }
-      
+    const city = data.address?.city 
+      || data.address?.town 
+      || data.address?.county 
+      || data.address?.village 
+      || data.address?.suburb 
+      || '';
+    
+    const country = data.address?.country || '';
+    
+    if (city && country) {
       return {
-        fullName: displayName,
-        locality: specificArea || city,
-        city: city,
-        state: state,
-        country: country,
-        lat: lat,
-        lon: lon,
-        timezone: timezone,
-        source: 'OpenStreetMap'
+        lat,
+        lon,
+        city,
+        country,
+        timezone: getTimezoneFromCoords(lat, lon)
       };
     }
     return null;
   } catch (error) {
+    console.error('LocationIQ reverse geocode failed:', error);
     return null;
   }
 }
 
-// CSV2GEO reverse geocoding
-async function getCityFromCoordsCSV2GEO(lat, lon) {
-  if (!CSV2GEO_API_KEY) {
-    return null;
-  }
+// LocationIQ autocomplete
+export async function getSearchSuggestions(query) {
+  if (!LOCATIONIQ_API_KEY || !query || query.length < 2) return [];
   
-  const url = `${CSV2GEO_URL}?lat=${lat}&lon=${lon}&api_key=${CSV2GEO_API_KEY}`;
+  const url = `${LOCATIONIQ_BASE_URL}/autocomplete.php?key=${LOCATIONIQ_API_KEY}&q=${encodeURIComponent(query)}&limit=5&format=json`;
   
   try {
     const response = await fetch(url);
-    if (!response.ok) throw new Error(`CSV2GEO error: ${response.status}`);
-    
-    const data = await response.json();
-    
-    if (data.results && data.results.length > 0) {
-      const result = data.results[0];
-      const components = result.components || {};
-      
-      const neighbourhood = components.neighbourhood || components.suburb || components.quarter || '';
-      const city = components.city || components.town || components.village || '';
-      const state = components.state || components.province || '';
-      const country = components.country || '';
-      
-      const timezone = getTimezoneFromCoords(lat, lon);
-      
-      let displayName;
-      if (neighbourhood && city && neighbourhood !== city) {
-        displayName = `${neighbourhood}, ${city}, ${country}`;
-      } else if (city) {
-        displayName = `${city}, ${country}`;
-      } else if (neighbourhood) {
-        displayName = `${neighbourhood}, ${country}`;
-      } else {
-        displayName = result.formatted_address || `${city}, ${country}`;
-      }
-      
-      return {
-        fullName: displayName,
-        locality: neighbourhood || city,
-        city: city,
-        state: state,
-        country: country,
-        lat: lat,
-        lon: lon,
-        timezone: timezone,
-        source: 'CSV2GEO'
-      };
-    }
-    return null;
-  } catch (error) {
-    return null;
-  }
-}
-
-// OpenWeather reverse geocoding
-async function getCityFromCoordsOpenWeather(lat, lon) {
-  const url = `${OPENWEATHER_GEOCODE_URL}?lat=${lat}&lon=${lon}&limit=1&appid=${OPENWEATHER_API_KEY}`;
-  
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`OpenWeather error: ${response.status}`);
+    if (!response.ok) throw new Error(`LocationIQ autocomplete error: ${response.status}`);
     
     const data = await response.json();
     
     if (data && data.length > 0) {
-      const location = data[0];
-      const name = location.name || '';
-      const state = location.state || '';
-      const country = location.country || '';
-      
-      const timezone = getTimezoneFromCoords(lat, lon);
-      
-      let displayName;
-      if (name && state && name !== state) {
-        displayName = `${name}, ${state}, ${country}`;
-      } else if (name) {
-        displayName = `${name}, ${country}`;
-      } else {
-        displayName = `${state}, ${country}`;
-      }
+      return data.map(item => ({
+        lat: parseFloat(item.lat),
+        lon: parseFloat(item.lon),
+        city: item.display_name?.split(',')[0] || item.name || '',
+        country: item.display_name?.split(',').pop()?.trim() || '',
+        displayName: item.display_name || ''
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error('LocationIQ autocomplete failed:', error);
+    return [];
+  }
+}
+
+// LocationIQ forward geocoding
+async function forwardGeocode(cityName) {
+  if (!LOCATIONIQ_API_KEY) return null;
+  
+  const url = `${LOCATIONIQ_BASE_URL}/search.php?key=${LOCATIONIQ_API_KEY}&q=${encodeURIComponent(cityName)}&format=json`;
+  
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`LocationIQ error: ${response.status}`);
+    
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      const result = data[0];
+      const city = result.display_name?.split(',')[0] || result.name || cityName;
+      const country = result.display_name?.split(',').pop()?.trim() || '';
       
       return {
-        locality: name,
-        city: name,
-        state: state,
-        country: country,
-        fullName: displayName,
-        lat: lat,
-        lon: lon,
-        timezone: timezone,
-        source: 'OpenWeather'
+        lat: parseFloat(result.lat),
+        lon: parseFloat(result.lon),
+        city,
+        country,
+        timezone: getTimezoneFromCoords(parseFloat(result.lat), parseFloat(result.lon))
       };
     }
     return null;
   } catch (error) {
+    console.error('LocationIQ forward geocode failed:', error);
     return null;
   }
 }
 
-// Browser Geolocation (GPS)
-function getBrowserLocation() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject('Geolocation not supported');
-      return;
-    }
-    
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude
-        });
-      },
-      (error) => {
-        reject(error.message);
-      },
-      { 
+// Search city by name
+export async function searchCityByName(cityName) {
+  const result = await forwardGeocode(cityName);
+  if (!result) {
+    throw new Error('City not found. Please try again.');
+  }
+  return result;
+}
+
+// Get location: try GPS first, fallback to default
+export async function getLocation() {
+  try {
+    // Try browser GPS first
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0
-      }
-    );
-  });
+      });
+    });
+
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    const location = await reverseGeocode(lat, lon);
+    if (location) return location;
+
+    return {
+      lat,
+      lon,
+      city: 'Unknown',
+      country: 'Unknown',
+      timezone: getTimezoneFromCoords(lat, lon)
+    };
+  } catch (error) {
+    console.error('Geolocation failed, using default location:', error);
+    // GPS failed or denied — use default location
+    return { ...DEFAULT_LOCATION };
+  }
 }
 
-// get location (GPS → OSM → CSV2GEO → OpenWeather)
-export async function getLocation() {
-  let lat, lon;
+// Update location from coordinates
+export async function updateLocationFromCoords(lat, lon, weatherCity) {
+  const location = await reverseGeocode(lat, lon);
   
-  // try browser GPS first
-  try {
-    const gpsPosition = await getBrowserLocation();
-    lat = gpsPosition.lat;
-    lon = gpsPosition.lon;
-    
-    const osmLocation = await getCityFromCoordsOSM(lat, lon);
-    if (osmLocation) {
-      return osmLocation;
+  if (location) {
+    if (weatherCity && weatherCity !== 'Unknown' && location.city !== weatherCity) {
+      location.city = weatherCity;
     }
-    
-    const csv2geoLocation = await getCityFromCoordsCSV2GEO(lat, lon);
-    if (csv2geoLocation) {
-      return csv2geoLocation;
-    }
-    
-    const openweatherLocation = await getCityFromCoordsOpenWeather(lat, lon);
-    if (openweatherLocation) {
-      return openweatherLocation;
-    }
-  } catch (gpsError) {
-    // GPS not available or denied
+    return location;
   }
-  
-  // fallback to default
-  return {
-    fullName: 'Lagos, Nigeria',
-    locality: 'Lagos',
-    city: 'Lagos',
-    state: 'Lagos',
-    country: 'Nigeria',
-    lat: 6.5244,
-    lon: 3.3792,
-    timezone: 'Africa/Lagos',
-    source: 'Default Fallback'
-  };
-}
-
-// get location from coordinates
-export async function getLocationFromCoords(lat, lon) {
-  const osmLocation = await getCityFromCoordsOSM(lat, lon);
-  if (osmLocation) {
-    return osmLocation;
-  }
-  
-  const csv2geoLocation = await getCityFromCoordsCSV2GEO(lat, lon);
-  if (csv2geoLocation) {
-    return csv2geoLocation;
-  }
-  
-  const openweatherLocation = await getCityFromCoordsOpenWeather(lat, lon);
-  if (openweatherLocation) {
-    return openweatherLocation;
-  }
-  
-  const timezone = getTimezoneFromCoords(lat, lon);
   
   return {
-    fullName: `Location at ${lat.toFixed(4)}, ${lon.toFixed(4)}`,
-    locality: 'Unknown',
-    city: 'Unknown',
-    state: 'Unknown',
+    lat,
+    lon,
+    city: weatherCity || 'Unknown',
     country: 'Unknown',
-    lat: lat,
-    lon: lon,
-    timezone: timezone,
-    source: 'Coordinate Fallback'
+    timezone: getTimezoneFromCoords(lat, lon)
   };
 }
 
-// localStorage functions
 export function saveLocation(location) {
   const saved = getSavedLocations();
   const exists = saved.some(loc => 
@@ -278,11 +183,10 @@ export function saveLocation(location) {
   );
   
   if (!exists) {
-    const locationToSave = {
+    saved.push({
       ...location,
       savedAt: new Date().toISOString()
-    };
-    saved.push(locationToSave);
+    });
     localStorage.setItem('climatelens_locations', JSON.stringify(saved));
     return true;
   }
@@ -304,22 +208,6 @@ export function removeLocation(index) {
   return false;
 }
 
-// update location and dispatch event
-export async function updateUserLocation(lat, lon) {
-  const locationData = await getLocationFromCoords(lat, lon);
-  
-  if (locationData) {
-    const event = new CustomEvent('locationChanged', {
-      detail: locationData
-    });
-    window.dispatchEvent(event);
-    return locationData;
-  }
-  
-  throw new Error('Failed to update location');
-}
-
-// watch for location changes
 export function onLocationChanged(callback) {
   window.addEventListener('locationChanged', (event) => {
     callback(event.detail);

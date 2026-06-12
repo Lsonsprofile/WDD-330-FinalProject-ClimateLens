@@ -11,19 +11,20 @@
   <div id="main-header"></div>
   
   <main>
-    <!-- Location & Time Bar -->
-    <div id="location-bar"></div>
+    <!-- City Search with Autocomplete -->
+    <div id="location-search" class="search-wrapper">
+      <input type="text" id="city-search" placeholder="Search city (e.g. Lagos, London)..." autocomplete="off" />
+      <button id="search-btn">Search</button>
+      <!-- ADD THIS: Suggestions dropdown -->
+      <div id="search-suggestions" class="suggestions hidden"></div>
+    </div>
     
-    <!-- Weather Card -->
-    <div id="weather-container">
-      <!-- Weather card will be injected here -->
-    </div>
-    <div id="forecast-container">
-      <!-- Forecast cards will be injected here -->
-    </div>
+    <div id="location-bar"></div>
+    <div id="weather-container"></div>
+    <div id="hourly-container"></div>
+    <div id="forecast-container"></div>
   </main>
   
   <div id="main-footer"></div>
-  
 </body>
 </html>

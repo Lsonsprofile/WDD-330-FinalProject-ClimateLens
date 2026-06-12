@@ -32,6 +32,32 @@
     gap: 4px;
     align-items: center;
   }
+  .hourly-scroll {
+    gap: 18px;
+  }
+  
+  .hourly-item {
+    min-width: 100px;
+    width: 100px;
+    padding: 16px 10px;
+  }
+  
+  .hourly-time {
+    font-size: 15px;
+  }
+  
+  .hourly-temp {
+    font-size: 22px;
+  }
+  
+  .hourly-feels {
+    font-size: 12px;
+  }
+  
+  .hourly-humidity,
+  .hourly-wind {
+    font-size: 12px;
+  }
 }
 
 /* Weather Card Mobile */
@@ -143,6 +169,46 @@
         font-size: 0.75rem;
       }
     }
+  }
+  .hourly-container {
+    padding: 16px;
+    margin: 16px auto;
+  }
+  
+  .hourly-scroll {
+    gap: 12px;
+  }
+  
+  .hourly-item {
+    min-width: 75px;
+    width: 75px;
+    padding: 10px 6px;
+    gap: 6px;
+  }
+  
+  .hourly-temp {
+    font-size: 17px;
+  }
+  
+  .hourly-feels,
+  .hourly-humidity,
+  .hourly-wind {
+    font-size: 10px;
+  }
+  
+  .hourly-pop {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  
+  #location-search,
+  .search-wrapper {
+    padding: 0 12px;
+    box-sizing: border-box;
+  }
+  
+  #city-search {
+    padding: 10px 14px;
   }
 }
 
