@@ -2,122 +2,190 @@
 const KEYS = {
   CURRENT: 'climatelens_current',
   SAVED: 'climatelens_locations',
+  RECENT: 'climatelens_recent',
   SETTINGS: 'climatelens_settings'
 };
 
-// Save current location state
-export function saveCurrentState(location) {
-  if (!location || !location.lat || !location.lon) return;
-  
-  localStorage.setItem(KEYS.CURRENT, JSON.stringify({
-    ...location,
-    lat: parseFloat(location.lat),
-    lon: parseFloat(location.lon),
+// Generic storage handler
+class Storage {
+  constructor(key, options = {}) {
+    this.key = key;
+    this.isArray = options.isArray || false;
+    this.validate = options.validate || (() => true);
+    this.transform = options.transform || ((data) => data);
+    this.maxItems = options.maxItems || null;
+  }
+
+  save(data) {
+    if (!this.validate(data)) {
+      return this.isArray ? false : undefined;
+    }
+
+    let payload;
+    if (this.isArray) {
+      const current = this.get();
+      payload = [...current, this.transform(data)];
+      if (this.maxItems && payload.length > this.maxItems) {
+        payload = payload.slice(-this.maxItems);
+      }
+    } else {
+      payload = this.transform(data);
+    }
+
+    localStorage.setItem(this.key, JSON.stringify(payload));
+    return this.isArray ? true : payload;
+  }
+
+  get() {
+    const stored = localStorage.getItem(this.key);
+    if (!stored) {
+      return this.isArray ? [] : null;
+    }
+
+    try {
+      const parsed = JSON.parse(stored);
+      return this.isArray && !Array.isArray(parsed) ? [] : parsed;
+    } catch {
+      return this.isArray ? [] : null;
+    }
+  }
+
+  exists() {
+    return !!localStorage.getItem(this.key);
+  }
+
+  clear() {
+    localStorage.removeItem(this.key);
+  }
+
+  update(updater) {
+    const current = this.get();
+    const updated = this.isArray
+      ? updater(current)
+      : { ...current, ...updater };
+
+    localStorage.setItem(this.key, JSON.stringify(updated));
+    return updated;
+  }
+}
+
+// Current location storage
+const currentStore = new Storage(KEYS.CURRENT, {
+  validate: (loc) => loc && loc.lat && loc.lon,
+  transform: (loc) => ({
+    ...loc,
+    lat: parseFloat(loc.lat),
+    lon: parseFloat(loc.lon),
     timestamp: new Date().toISOString()
-  }));
-}
+  })
+});
 
-// Get current location state
-export function getCurrentState() {
-  const stored = localStorage.getItem(KEYS.CURRENT);
-  if (!stored) return null;
-  
-  try {
-    const parsed = JSON.parse(stored);
-    // Ensure lat/lon are numbers
-    return {
-      ...parsed,
-      lat: parseFloat(parsed.lat),
-      lon: parseFloat(parsed.lon)
-    };
-  } catch {
-    return null;
-  }
-}
+// Saved locations storage
+const savedStore = new Storage(KEYS.SAVED, {
+  isArray: true,
+  validate: (loc) => loc && loc.lat && loc.lon,
+  transform: (loc) => ({
+    ...loc,
+    lat: parseFloat(loc.lat),
+    lon: parseFloat(loc.lon),
+    savedAt: new Date().toISOString()
+  })
+});
 
-// Check if state exists
-export function hasCurrentState() {
-  return !!localStorage.getItem(KEYS.CURRENT);
-}
+// Recent searches storage
+const recentStore = new Storage(KEYS.RECENT, {
+  isArray: true,
+  maxItems: 10,
+  validate: (loc) => loc && loc.lat && loc.lon && loc.city,
+  transform: (loc) => ({
+    ...loc,
+    lat: parseFloat(loc.lat),
+    lon: parseFloat(loc.lon),
+    searchedAt: new Date().toISOString()
+  })
+});
 
-// Clear current state
-export function clearCurrentState() {
-  localStorage.removeItem(KEYS.CURRENT);
-}
-
-// Save location to saved list
-export function saveToLocationsList(location) {
-  if (!location || !location.lat || !location.lon) return false;
-  
-  const saved = getSavedLocationsList();
-  const exists = saved.some(loc => 
-    Math.abs(parseFloat(loc.lat) - parseFloat(location.lat)) < 0.001 && 
-    Math.abs(parseFloat(loc.lon) - parseFloat(location.lon)) < 0.001
-  );
-  
-  if (!exists) {
-    saved.push({
-      ...location,
-      lat: parseFloat(location.lat),
-      lon: parseFloat(location.lon),
-      savedAt: new Date().toISOString()
-    });
-    localStorage.setItem(KEYS.SAVED, JSON.stringify(saved));
-    return true;
-  }
-  return false;
-}
-
-// Get saved locations list
-export function getSavedLocationsList() {
-  const stored = localStorage.getItem(KEYS.SAVED);
-  if (!stored) return [];
-  
-  try {
-    const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-// Remove location from saved list
-export function removeFromLocationsList(index) {
-  const saved = getSavedLocationsList();
-  if (saved[index]) {
-    saved.splice(index, 1);
-    localStorage.setItem(KEYS.SAVED, JSON.stringify(saved));
-    return true;
-  }
-  return false;
-}
-
-// Save user settings
-export function saveSettings(settings) {
-  const current = getSettings();
-  localStorage.setItem(KEYS.SETTINGS, JSON.stringify({
-    ...current,
+// User settings storage
+const settingsStore = new Storage(KEYS.SETTINGS, {
+  transform: (settings) => ({
     ...settings,
     updatedAt: new Date().toISOString()
-  }));
-}
+  })
+});
 
-// Get user settings
-export function getSettings() {
+// Current location API
+export const saveCurrentState = (loc) => currentStore.save(loc);
+export const getCurrentState = () => currentStore.get();
+export const hasCurrentState = () => currentStore.exists();
+export const clearCurrentState = () => currentStore.clear();
+
+// Saved locations API
+export const saveToLocationsList = (loc) => {
+  const saved = savedStore.get();
+  const exists = saved.some(
+    (s) =>
+      Math.abs(s.lat - parseFloat(loc.lat)) < 0.001 &&
+      Math.abs(s.lon - parseFloat(loc.lon)) < 0.001
+  );
+  return exists ? false : savedStore.save(loc);
+};
+
+export const getSavedLocationsList = () => savedStore.get();
+export const removeFromLocationsList = (index) => {
+  const saved = savedStore.get();
+  if (!saved[index]) {
+    return false;
+  }
+  saved.splice(index, 1);
+  localStorage.setItem(KEYS.SAVED, JSON.stringify(saved));
+  return true;
+};
+
+// Recent searches API
+export const saveRecentSearch = (loc) => {
+  const recent = recentStore.get();
+  const filtered = recent.filter(
+    (r) => r.city?.toLowerCase() !== loc.city?.toLowerCase()
+  );
+  localStorage.setItem(KEYS.RECENT, JSON.stringify(filtered));
+  return recentStore.save(loc);
+};
+
+export const getRecentSearches = () => {
+  const recent = recentStore.get();
+  return recent.reverse();
+};
+
+export const clearRecentSearches = () => recentStore.clear();
+
+// Settings API
+export const saveSettings = (settings) => {
+  const current = settingsStore.get() || {};
+  // Replace completely with new settings
+  const newSettings = {
+    ...settings,
+    updatedAt: new Date().toISOString()
+  };
+  localStorage.setItem(KEYS.SETTINGS, JSON.stringify(newSettings));
+  return newSettings;
+};
+
+// Get fresh settings every time (not cached)
+export const getSettings = () => {
   const stored = localStorage.getItem(KEYS.SETTINGS);
   if (!stored) return {};
-  
   try {
     return JSON.parse(stored);
   } catch {
     return {};
   }
-}
+};
 
-// Clear all app data
-export function clearAllData() {
-  Object.values(KEYS).forEach(key => localStorage.removeItem(key));
-}
+// Utility functions
+export const clearAllData = () => {
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('climatelens'))
+    .forEach(k => localStorage.removeItem(k));
+};
 
-// Export keys for direct access if needed
 export { KEYS };

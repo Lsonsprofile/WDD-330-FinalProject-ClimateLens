@@ -1,0 +1,207 @@
+/* ============================================
+   SETTINGS PANEL - Dark theme matching image
+   ============================================ */
+
+#settings-main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 6rem 1rem 2rem;
+}
+
+.settings-panel {
+  background: #0f0f0f;
+  border-radius: 12px;
+  padding: 2rem;
+  color: var(--color-white);
+}
+
+.settings-title {
+  font-family: var(--font-primary);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-white);
+  margin-bottom: 2rem;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.group-title {
+  font-family: var(--font-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.setting-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.field-label {
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-white);
+}
+
+.field-sublabel {
+  font-family: var(--font-secondary);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-text-muted);
+}
+
+.field-select,
+.field-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1a1a1a;
+  color: var(--color-white);
+  font-family: var(--font-primary);
+  font-size: 0.95rem;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+.field-input {
+  cursor: default;
+  background-image: none;
+  padding-right: 1rem;
+  color: var(--color-text-muted);
+}
+
+.field-select:focus {
+  border-color: var(--color-navy-blue);
+}
+
+.settings-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: transparent;
+  color: var(--color-white);
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-btn:hover {
+  background: #1a1a1a;
+  border-color: #444;
+}
+
+.save-btn.saved {
+  background: var(--color-navy-blue);
+  border-color: var(--color-navy-blue);
+}
+
+.save-icon {
+  font-size: 1rem;
+}
+
+.settings-divider {
+  height: 1px;
+  background: #222;
+  margin: 2rem 0;
+}
+
+.clear-btn {
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #ef4444;
+  background: transparent;
+  color: #ef4444;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+
+.clear-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.about-text {
+  font-family: var(--font-secondary);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.about-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.about-version {
+  font-family: var(--font-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-navy-blue);
+  background: rgba(144, 183, 235, 0.15);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+}
+
+.about-link {
+  font-family: var(--font-secondary);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.about-link:hover {
+  color: var(--color-white);
+}
+
+/* ============================================
+   MOBILE SETTINGS
+   ============================================ */
+
+@media (max-width: 48rem) {
+  #settings-main {
+    padding: 5rem 0.75rem 1.5rem;
+  }
+
+  .settings-panel {
+    padding: 1.5rem;
+  }
+
+  .settings-title {
+    font-size: 1.5rem;
+  }
+}

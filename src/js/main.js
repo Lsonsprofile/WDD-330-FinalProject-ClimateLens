@@ -14,7 +14,8 @@ import {
   getCurrentState, 
   hasCurrentState,
   saveToLocationsList,
-  getSavedLocationsList 
+  getSavedLocationsList,
+  saveRecentSearch        // ADDED
 } from './StorageManager.mjs';
 import { renderCurrentWeather, renderLocationBar, renderHourly, renderForecast, renderDayModal, hideDayModal } from './UIController.mjs';
 
@@ -53,8 +54,6 @@ function showSearchPrompt() {
   if (hourlyContainer) hourlyContainer.innerHTML = '';
 }
 
-// REMOVED: old updateHeader() function - now in utils.mjs
-
 async function displayWeather(lat, lon, locationData) {
   try {
     const weatherData = await getCompleteWeatherData(lat, lon);
@@ -81,6 +80,14 @@ async function displayWeather(lat, lon, locationData) {
     // SAVE STATE using StorageManager
     saveCurrentState(finalLocation);
     currentLocation = finalLocation;
+    
+    // ADDED: Save to recent searches
+    saveRecentSearch({
+      lat: finalLocation.lat,
+      lon: finalLocation.lon,
+      city: finalLocation.city,
+      country: finalLocation.country
+    });
     
     const forecast = await getProcessedForecast(lat, lon);
     currentForecast = forecast;
@@ -181,6 +188,9 @@ async function handleInput(e) {
         suggestionsBox.innerHTML = '';
         suggestionsBox.classList.add('hidden');
         
+        // ADDED: Save to recent searches on suggestion click
+        saveRecentSearch({ lat, lon, city, country });
+        
         showLoading();
         displayWeather(lat, lon, { lat, lon, city, country });
       });
@@ -197,6 +207,15 @@ async function handleSearch() {
   
   try {
     const result = await searchCityByName(cityName);
+    
+    // ADDED: Save to recent searches on manual search
+    saveRecentSearch({
+      lat: result.lat,
+      lon: result.lon,
+      city: result.city,
+      country: result.country
+    });
+    
     await displayWeather(result.lat, result.lon, result);
     input.value = '';
   } catch (error) {
@@ -256,7 +275,7 @@ function setupEvents() {
 
 async function init() {
   try {
-    await loadHeaderFooter(); // this now auto-updates header text
+    await loadHeaderFooter();
     setupEvents();
     await loadInitial();
   } catch (error) {

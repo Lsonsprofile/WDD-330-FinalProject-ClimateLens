@@ -678,7 +678,8 @@ footer {
   position: relative;
   max-width: 400px;
   margin: 0 auto 20px;
-  z-index: 200; /* Ensure wrapper is above other content */
+  margin-top: 0.5rem;
+  z-index: 200; 
 }
 
 #city-search {
@@ -714,10 +715,10 @@ footer {
   opacity: 0.9;
 }
 
-/* Suggestions dropdown - FIXED */
+/* Suggestions dropdown */
 .suggestions {
   position: absolute;
-  top: calc(100% + 4px); /* 4px gap below input */
+  top: calc(100% + 4px); 
   left: 0;
   right: 0;
   background: var(--color-bg-primary);
@@ -725,7 +726,7 @@ footer {
   border-radius: 12px;
   max-height: 250px;
   overflow-y: auto;
-  z-index: 9999; /* Very high to overlay everything */
+  z-index: 9999; 
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   padding: 4px 0;
 }
@@ -956,45 +957,48 @@ footer {
   font-size: 1.1rem;
 }
 
-/* ============================================
-   MOBILE WARDROBE
-   ============================================ */
-
-@media (max-width: 48rem) {
-  .atlas-title {
-    font-size: 2.2rem;
-  }
-  
-  .ensemble-gallery {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-  
-  .card-body {
-    min-height: 240px;
-    padding: 16px;
-  }
-  
-  .card-image,
-  .extras-visual {
-    height: 120px;
-  }
-  
-  .card-item-name {
-    font-size: 1.1rem;
-  }
+.reset-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: transparent;
+  color: #aaa;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-@media (max-width: 30rem) {
-  .ensemble-gallery {
-    grid-template-columns: 1fr;
-  }
-  
-  .atlas-title {
-    font-size: 1.8rem;
-  }
-  
-  .atlas-subtitle {
-    font-size: 0.95rem;
-  }
+.reset-btn:hover {
+  border-color: #666;
+  color: var(--color-white);
+  background: #1a1a1a;
 }
+
+.reset-btn.saved {
+  border-color: var(--color-navy-blue);
+  color: var(--color-white);
+}
+
+.settings-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.reset-icon {
+  font-size: 1rem;
+}
+
+
+
+
+
+
+

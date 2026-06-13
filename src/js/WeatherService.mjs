@@ -59,16 +59,16 @@ export function getLocationNameFromWeather(weatherData) {
 
 // format time from WeatherAPI format
 export function formatTime(timeString) {
-  if (!timeString) return 'N/A';
+  if (!timeString) return '&#10060;';
   const date = new Date(`2000-01-01 ${timeString}`);
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
 // convert wind direction from degrees to cardinal
 export function windDegToDirection(degrees) {
-  if (degrees === undefined || degrees === null) return 'N/A';
-  const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
-                      'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  if (degrees === undefined || degrees === null) return '&#10060;';
+  const directions = ['&#11014;', '&#11013;&#11014;', '&#11013;', '&#11014;&#11015;', '&#11015;', '&#11014;&#11015;', '&#11014;', '&#11013;&#11014;',
+                      '&#11014;', '&#11013;&#11015;', '&#11013;', '&#11013;&#11014;', '&#11014;', '&#11013;&#11015;', '&#11013;', '&#11013;&#11014;'];
   const index = Math.round(degrees / 22.5) % 16;
   return directions[index];
 }

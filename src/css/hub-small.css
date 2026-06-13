@@ -1,0 +1,148 @@
+@media (max-width: 48rem) {
+  .converter-dashboard {
+    padding: 24px 16px;
+  }
+
+  .converter-title {
+    font-size: 1.8rem;
+  }
+
+  .converter-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .converter-card {
+    padding: 20px;
+  }
+
+  .converter-row {
+    flex-wrap: wrap;
+  }
+
+  .input-group {
+    min-width: calc(50% - 6px);
+  }
+
+  .swap-btn {
+    order: 3;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .result-group {
+    order: 4;
+    width: 100%;
+  }
+
+  .simple-converter {
+    margin: 1rem;
+    padding: 24px;
+  }
+
+  .converter-headline {
+    font-size: 1.5rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 30rem) {
+  .converter-dashboard {
+    padding: 16px 12px;
+  }
+
+  .converter-title {
+    font-size: 1.5rem;
+  }
+
+  .converter-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .converter-card {
+    padding: 16px;
+  }
+
+  .card-header {
+    margin-bottom: 16px;
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .input-group {
+    min-width: 100%;
+  }
+
+  .converter-input,
+  .converter-select,
+  .converter-result {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .swap-btn {
+    height: 36px;
+  }
+
+  .quick-chips {
+    gap: 8px;
+  }
+
+  .quick-chip {
+    padding: 4px 10px;
+  }
+
+  .chip-value {
+    font-size: 0.75rem;
+  }
+
+  .chip-unit {
+    font-size: 0.65rem;
+  }
+
+  .hubs-welcome {
+    padding: 2rem 1rem;
+  }
+
+  .hubs-welcome h1 {
+    font-size: 1.8rem;
+  }
+
+  .hubs-welcome p {
+    font-size: 0.9rem;
+  }
+
+  .simple-converter {
+    padding: 16px;
+  }
+}
+
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.converter-card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.converter-card:nth-child(1) { animation-delay: 0s; }
+.converter-card:nth-child(2) { animation-delay: 0.1s; }
+.converter-card:nth-child(3) { animation-delay: 0.2s; }
+.converter-card:nth-child(4) { animation-delay: 0.3s; }

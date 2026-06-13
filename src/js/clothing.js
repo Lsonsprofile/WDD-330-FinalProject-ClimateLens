@@ -10,10 +10,12 @@ import {
 import { 
   saveCurrentState, 
   getCurrentState, 
-  hasCurrentState 
+  hasCurrentState,
+  saveRecentSearch
 } from './StorageManager.mjs';
 import { getClothingRecommendation } from './ClothingAdvisor.mjs';
 import { renderLocationBar } from './UIController.mjs';
+import { formatTemp, getTempUnit } from './UnitConverter.mjs';
 
 let climateStore = null;
 
@@ -58,10 +60,13 @@ function renderWardrobeGuide(weatherData) {
     ? extras.map(e => e.name).join(' & ')
     : 'None needed';
 
+  // Use converted temperature
+  const displayTemp = formatTemp(weatherData.temp);
+
   container.innerHTML = `
     <div class="wardrobe-atlas">
       <h1 class="atlas-title">What to Wear Today</h1>
-      <p class="atlas-subtitle">Recommended Outfit for ${weatherData.temp}°C&#127777;</p>
+      <p class="atlas-subtitle">Recommended Outfit for ${displayTemp}&#127777;</p>
       
       <div class="ensemble-gallery">
         <div class="ensemble-card">
@@ -200,6 +205,13 @@ async function displayClothing(lat, lon, locationData) {
     saveCurrentState(finalLocation);
     climateStore = finalLocation;
     
+    saveRecentSearch({
+      lat: finalLocation.lat,
+      lon: finalLocation.lon,
+      city: finalLocation.city,
+      country: finalLocation.country
+    });
+    
     updateHeaderText(city, country);
     renderLocationBar(finalLocation);
     renderWardrobeGuide(weatherData);
@@ -253,6 +265,8 @@ async function handleInput(e) {
         suggestionsBox.innerHTML = '';
         suggestionsBox.classList.add('hidden');
         
+        saveRecentSearch({ lat, lon, city, country });
+        
         displayClothing(lat, lon, { lat, lon, city, country });
       });
     });
@@ -268,6 +282,14 @@ async function handleSearch() {
   
   try {
     const result = await searchCityByName(cityName);
+    
+    saveRecentSearch({
+      lat: result.lat,
+      lon: result.lon,
+      city: result.city,
+      country: result.country
+    });
+    
     await displayClothing(result.lat, result.lon, result);
     input.value = '';
   } catch (error) {

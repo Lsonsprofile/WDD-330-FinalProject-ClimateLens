@@ -92,7 +92,30 @@
   .hourly-wind {
     font-size: 12px;
   }
+  .atlas-title {
+    font-size: 2.2rem;
+  }
+  
+  .ensemble-gallery {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .card-body {
+    min-height: 240px;
+    padding: 16px;
+  }
+  
+  .card-image,
+  .extras-visual {
+    height: 120px;
+  }
+  
+  .card-item-name {
+    font-size: 1.1rem;
+  }
 }
+
 
 /* Apply to body or main wrapper */
 .page-entrance {
@@ -328,7 +351,19 @@
   #city-search {
     padding: 10px 14px;
   }
+  .ensemble-gallery {
+    grid-template-columns: 1fr;
+  }
+  
+  .atlas-title {
+    font-size: 1.8rem;
+  }
+  
+  .atlas-subtitle {
+    font-size: 0.95rem;
+  }
 }
+
 
 /* Extra Small Screens */
 @media (max-width: 22.5rem) {

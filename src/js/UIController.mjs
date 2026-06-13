@@ -1,5 +1,7 @@
-// get weather icon URL
-export function getWeatherIconUrl(iconCode) {
+import { formatTemp, formatWindSpeed, getTempUnit } from "./UnitConverter.mjs";
+
+// Local icon helper (WeatherService.mjs doesn't exist or is different)
+function getWeatherIconUrl(iconCode) {
   if (!iconCode) return '/icons/weather.svg';
   return iconCode.startsWith('http') ? iconCode : `https:${iconCode}`;
 }
@@ -52,15 +54,15 @@ export function renderCurrentWeather(data) {
       </div>
       <div class="main-section">
         <div class="temp-info">
-          <h1 class="temp-value">${data.temp}<span class="temp-unit">°C</span></h1>
+          <h1 class="temp-value">${formatTemp(data.temp)}</h1>
           <p class="condition">${displayCondition}</p>
-          <p class="feels-like">Feels like ${data.feelsLike}°C</p>
+          <p class="feels-like">Feels like ${formatTemp(data.feelsLike)}</p>
         </div>
         <img src="${iconUrl}" alt="${displayCondition}" class="weather-icon-large" onerror="this.src='/icons/weather.svg'">
       </div>
       <div class="stats-row">
         ${renderStat('/icons/humidity.svg', 'Humidity', `${data.humidity}%`)}
-        ${renderStat('/icons/wind.svg', 'Wind', `${data.windSpeed} km/h ${data.windDirection}`)}
+        ${renderStat('/icons/wind.svg', 'Wind', formatWindSpeed(data.windSpeed))}
         ${renderStat('/icons/uv-index.svg', 'UV Index', data.uvValue || 'N/A')}
         ${renderStat('/icons/visibility.svg', 'Visibility', `${data.visibility} km`)}
       </div>
@@ -68,7 +70,7 @@ export function renderCurrentWeather(data) {
         ${renderStat('/icons/pressure.svg', 'Pressure', `${data.pressure} hPa`)}
         ${renderStat('/icons/clouds.svg', 'Cloud Cover', `${data.cloudCover}%`)}
         ${renderStat('/icons/rain-chance.svg', 'Rain Chance', `${data.rainChance}%`)}
-        ${renderStat('/icons/dew-point.svg', 'Dew Point', `${data.feelsLike}°C`)}
+        ${renderStat('/icons/dew-point.svg', 'Dew Point', formatTemp(data.feelsLike))}
       </div>
       <div class="footer-times">
         ${renderTimeSlot('/icons/sunrise.svg', 'Sunrise', data.sunriseFormatted)}
@@ -121,7 +123,7 @@ export function renderHourly(hourlyData) {
             <div class="hourly-item">
               <span class="hourly-time">${h.time}</span>
               <img src="${iconUrl}" alt="${h.condition}" class="hourly-icon" width="40" height="40" onerror="this.src='/icons/weather.svg'">
-              <span class="hourly-temp">${h.temp}°</span>
+              <span class="hourly-temp">${formatTemp(h.temp)}</span>
               ${h.rainChance > 0 ? `<span class="hourly-rain">${h.rainChance}%</span>` : ''}
             </div>
           `;
@@ -168,8 +170,8 @@ function renderForecastCard(day) {
       <div class="forecast-date">${day.fullDate}</div>
       <img src="${iconUrl}" alt="${day.condition}" class="forecast-icon" onerror="this.src='/icons/weather.svg'">
       <div class="forecast-temp">
-        <span class="temp-high">${day.tempMax}°</span>
-        <span class="temp-low">${day.tempMin}°</span>
+        <span class="temp-high">${formatTemp(day.tempMax)}</span>
+        <span class="temp-low">${formatTemp(day.tempMin)}</span>
       </div>
       <div class="forecast-condition">${day.condition}</div>
       <div class="forecast-details">
@@ -179,7 +181,7 @@ function renderForecastCard(day) {
         </span>
         <span class="detail-item">
           <img src="/icons/wind.svg" alt="wind" class="detail-icon" onerror="this.style.display='none'">
-          ${day.windSpeedAvg} km/h
+          ${formatWindSpeed(day.windSpeedAvg)}
         </span>
         ${day.rainChanceMax > 0 ? `
           <span class="detail-item">
@@ -209,14 +211,14 @@ export function renderDayModal(dayData, forecastData) {
       <div class="detail-main">
         <img src="${iconUrl}" alt="${dayData.condition}" onerror="this.src='/icons/weather.svg'">
         <div class="detail-temps">
-          <span class="detail-high">${dayData.tempMax}°</span>
-          <span class="detail-low">${dayData.tempMin}°</span>
+          <span class="detail-high">${formatTemp(dayData.tempMax)}</span>
+          <span class="detail-low">${formatTemp(dayData.tempMin)}</span>
         </div>
         <p class="detail-condition">${dayData.condition}</p>
       </div>
       <div class="detail-stats">
         <div class="detail-stat"><span>Humidity</span><span>${dayData.humidityAvg}%</span></div>
-        <div class="detail-stat"><span>Wind</span><span>${dayData.windSpeedAvg} km/h</span></div>
+        <div class="detail-stat"><span>Wind</span><span>${formatWindSpeed(dayData.windSpeedAvg)}</span></div>
         <div class="detail-stat"><span>Rain Chance</span><span>${dayData.rainChanceMax}%</span></div>
         <div class="detail-stat"><span>UV Index</span><span>${dayData.uvValue || 'N/A'}</span></div>
       </div>
