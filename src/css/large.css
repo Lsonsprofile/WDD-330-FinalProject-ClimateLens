@@ -197,7 +197,7 @@ footer {
   justify-content: space-between;
   align-items: center;
   padding: 0.875rem 1rem;
-  background: linear-gradient(135deg, rgba(29, 75, 127, 0.8) 20%, rgba(12, 19, 27, 0.8) 100%);
+  background: linear-gradient(100deg, rgba(0, 0, 0, 0.8) 20%, rgba(0, 3, 5, 0.8) 100%);
   margin-bottom: 20px;
   color: white;
   backdrop-filter: blur(10px);
@@ -264,7 +264,7 @@ footer {
 
 /* Weather Card */
 .weather-card {
-  background: linear-gradient(135deg, rgba(29, 75, 127, 0.5) 0%, rgba(12, 19, 27, 0.8) 100%);
+  background: linear-gradient(100deg, rgba(0, 0, 0, 0.5) 40%, rgb(0, 0, 0) 10%);
   border-radius: 20px;
   padding: 24px;
   color: var(--color-white);
@@ -436,7 +436,7 @@ footer {
 .forecast-container {
   margin: 10px auto;
   padding: 20px;
-  background: linear-gradient(135deg, rgba(29, 75, 127, 0.5) 0%, rgba(12, 19, 27, 0.8) 100%);
+  background: linear-gradient(135deg, rgba(0, 16, 34, 0.5) 0%, rgba(1, 14, 30, 0.8) 10%);
   border-radius: 20px;
   box-shadow: var(--shadow-sm);
   max-width: 1000px;
@@ -456,7 +456,7 @@ footer {
     gap: 10px;
 
     .forecast-card {
-      background: var(--color-text-secondary);
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.5) 2%, rgba(0, 0, 0, 0.8) 10%);
       border-radius: 16px;
       padding: 16px;
       text-align: center;
@@ -537,12 +537,8 @@ footer {
 
 
 
-
-
-
-
 .hourly-container {
-  background: linear-gradient(135deg, #1d4b7f 0%, #0c131b 100%);
+  background: linear-gradient(135deg, #070707 0%, #12253a 100%);
   border-radius: 20px;
   padding: 24px;
   color: var(--color-bg-primary);
