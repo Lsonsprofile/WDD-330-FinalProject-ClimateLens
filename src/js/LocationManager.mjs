@@ -1,15 +1,6 @@
 const LOCATIONIQ_API_KEY = import.meta.env.VITE_LOCATIONIQ_API_KEY;
 const LOCATIONIQ_BASE_URL = import.meta.env.VITE_LOCATIONIQ_BASE_URL;
 
-// Default location: Lagos, Nigeria
-const DEFAULT_LOCATION = {
-  lat: 6.5244,
-  lon: 3.3792,
-  city: 'Lagos',
-  country: 'Nigeria',
-  timezone: 'Africa/Lagos'
-};
-
 function getTimezoneFromCoords(lat, lon) {
   const offset = Math.round(lon / 15);
   const sign = offset >= 0 ? '+' : '-';
@@ -40,8 +31,8 @@ async function reverseGeocode(lat, lon) {
     
     if (city && country) {
       return {
-        lat,
-        lon,
+        lat: parseFloat(lat),
+        lon: parseFloat(lon),
         city,
         country,
         timezone: getTimezoneFromCoords(lat, lon)
@@ -49,7 +40,6 @@ async function reverseGeocode(lat, lon) {
     }
     return null;
   } catch (error) {
-    console.error('LocationIQ reverse geocode failed:', error);
     return null;
   }
 }
@@ -77,7 +67,6 @@ export async function getSearchSuggestions(query) {
     }
     return [];
   } catch (error) {
-    console.error('LocationIQ autocomplete failed:', error);
     return [];
   }
 }
@@ -109,7 +98,6 @@ async function forwardGeocode(cityName) {
     }
     return null;
   } catch (error) {
-    console.error('LocationIQ forward geocode failed:', error);
     return null;
   }
 }
@@ -123,36 +111,33 @@ export async function searchCityByName(cityName) {
   return result;
 }
 
-// Get location: try GPS first, fallback to default
-export async function getLocation() {
-  try {
-    // Try browser GPS first
-    const position = await new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      });
-    });
-
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
-
-    const location = await reverseGeocode(lat, lon);
-    if (location) return location;
-
-    return {
-      lat,
-      lon,
-      city: 'Unknown',
-      country: 'Unknown',
-      timezone: getTimezoneFromCoords(lat, lon)
-    };
-  } catch (error) {
-    console.error('Geolocation failed, using default location:', error);
-    // GPS failed or denied — use default location
-    return { ...DEFAULT_LOCATION };
+// Get location from browser GPS (only when user clicks)
+export async function getBrowserLocation() {
+  if (!navigator.geolocation) {
+    throw new Error('Geolocation is not supported by your browser.');
   }
+
+  const position = await new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    });
+  });
+
+  const lat = position.coords.latitude;
+  const lon = position.coords.longitude;
+
+  const location = await reverseGeocode(lat, lon);
+  if (location) return location;
+
+  return {
+    lat: parseFloat(lat),
+    lon: parseFloat(lon),
+    city: 'Unknown',
+    country: 'Unknown',
+    timezone: getTimezoneFromCoords(lat, lon)
+  };
 }
 
 // Update location from coordinates
@@ -167,47 +152,15 @@ export async function updateLocationFromCoords(lat, lon, weatherCity) {
   }
   
   return {
-    lat,
-    lon,
+    lat: parseFloat(lat),
+    lon: parseFloat(lon),
     city: weatherCity || 'Unknown',
     country: 'Unknown',
     timezone: getTimezoneFromCoords(lat, lon)
   };
 }
 
-export function saveLocation(location) {
-  const saved = getSavedLocations();
-  const exists = saved.some(loc => 
-    Math.abs(loc.lat - location.lat) < 0.001 && 
-    Math.abs(loc.lon - location.lon) < 0.001
-  );
-  
-  if (!exists) {
-    saved.push({
-      ...location,
-      savedAt: new Date().toISOString()
-    });
-    localStorage.setItem('climatelens_locations', JSON.stringify(saved));
-    return true;
-  }
-  return false;
-}
-
-export function getSavedLocations() {
-  const stored = localStorage.getItem('climatelens_locations');
-  return stored ? JSON.parse(stored) : [];
-}
-
-export function removeLocation(index) {
-  const saved = getSavedLocations();
-  if (saved[index]) {
-    saved.splice(index, 1);
-    localStorage.setItem('climatelens_locations', JSON.stringify(saved));
-    return true;
-  }
-  return false;
-}
-
+// Event listener for location changes
 export function onLocationChanged(callback) {
   window.addEventListener('locationChanged', (event) => {
     callback(event.detail);

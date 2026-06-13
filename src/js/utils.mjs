@@ -14,6 +14,39 @@ export function renderWithTemplate(template, parentElement, callback, data) {
   if (callback) callback(data);
 }
 
+// ============================================
+// SHARED HEADER UPDATE - works on every page
+// ============================================
+
+export function updateHeaderText(city, country) {
+  const el = document.getElementById('header-location-text');
+  if (!el) return;
+  
+  if (city && country) {
+    el.textContent = `${city}, ${country}`;
+  } else if (city) {
+    el.textContent = city;
+  } else {
+    el.textContent = 'Search for a city';
+  }
+}
+
+// load saved location and update header
+export function loadHeaderLocation() {
+  const stored = localStorage.getItem('climatelens_current');
+  if (!stored) {
+    updateHeaderText(null, null); // shows "Search for a city"
+    return;
+  }
+  
+  try {
+    const location = JSON.parse(stored);
+    updateHeaderText(location.city, location.country);
+  } catch {
+    updateHeaderText(null, null);
+  }
+}
+
 // load header and footer partials
 export async function loadHeaderFooter() {
   try {
@@ -22,6 +55,7 @@ export async function loadHeaderFooter() {
     if (headerElement) {
       renderWithTemplate(headerTemplate, headerElement, () => {
         initHamburgerMenu();
+        loadHeaderLocation(); // update header text after header loads
       });
     }
 

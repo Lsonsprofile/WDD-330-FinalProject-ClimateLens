@@ -20,6 +20,14 @@
       gap: 1rem;
       align-items: center;
     }
+    .nav-item {
+      background-color: var(--color-sunny-yellow);
+      width: 100%;
+    }
+    .nav-link {
+      padding: 0.5rem;
+      justify-content: center;
+    }
   }
 
   .header-actions {
@@ -58,7 +66,117 @@
   .hourly-wind {
     font-size: 12px;
   }
+    .hourly-scroll {
+    gap: 18px;
+  }
+  
+  .hourly-item {
+    min-width: 100px;
+    width: 100px;
+    padding: 16px 10px;
+  }
+  
+  .hourly-time {
+    font-size: 15px;
+  }
+  
+  .hourly-temp {
+    font-size: 22px;
+  }
+  
+  .hourly-feels {
+    font-size: 12px;
+  }
+  
+  .hourly-humidity,
+  .hourly-wind {
+    font-size: 12px;
+  }
 }
+
+/* Apply to body or main wrapper */
+.page-entrance {
+  animation: zoomOutEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: center center;
+}
+
+@keyframes zoomOutEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(1.15);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Staggered entrance for child elements */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card zoom entrance for weather cards */
+.card-zoom-entrance {
+  animation: cardZoomOut 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-origin: center center;
+}
+
+@keyframes cardZoomOut {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Delay classes for sequential card animation */
+.delay-1 { animation-delay: 0.1s; opacity: 0; }
+.delay-2 { animation-delay: 0.2s; opacity: 0; }
+.delay-3 { animation-delay: 0.3s; opacity: 0; }
+.delay-4 { animation-delay: 0.4s; opacity: 0; }
+.delay-5 { animation-delay: 0.5s; opacity: 0; }
+
+/* Smooth page transitions between routes */
+.page-transition {
+  animation: zoomOutEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+  /* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .page-entrance,
+  .stagger-children > *,
+  .card-zoom-entrance,
+  .page-transition {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  }
 
 /* Weather Card Mobile */
 @media (max-width: 38rem) {

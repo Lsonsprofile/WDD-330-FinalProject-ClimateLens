@@ -1,28 +1,59 @@
 import '../css/large.css';
 import '../css/small.css';
-import { loadHeaderFooter } from './utils.mjs';
+import { loadHeaderFooter, updateHeaderText } from './utils.mjs';
 import { getCompleteWeatherData } from './WeatherService.mjs';
-import { getProcessedForecast, getHourlyForecast, getForecastForDay } from './ForecastManager.mjs';
-import { getLocation, searchCityByName, getSearchSuggestions, updateLocationFromCoords, getSavedLocations, saveLocation, onLocationChanged } from './LocationManager.mjs';
+import { getProcessedForecast } from './ForecastManager.mjs';
+import { 
+  searchCityByName, 
+  getSearchSuggestions, 
+  updateLocationFromCoords, 
+  onLocationChanged 
+} from './LocationManager.mjs';
+import { 
+  saveCurrentState, 
+  getCurrentState, 
+  hasCurrentState,
+  saveToLocationsList,
+  getSavedLocationsList 
+} from './StorageManager.mjs';
 import { renderCurrentWeather, renderLocationBar, renderHourly, renderForecast, renderDayModal, hideDayModal } from './UIController.mjs';
 
 let currentLocation = null;
 let currentForecast = null;
 
 function showLoading() {
-  document.getElementById('weather-container').innerHTML = '<div class="loading">Loading...</div>';
-  document.getElementById('forecast-container').innerHTML = '';
-  document.getElementById('hourly-container').innerHTML = '';
+  const weatherContainer = document.getElementById('weather-container');
+  const forecastContainer = document.getElementById('forecast-container');
+  const hourlyContainer = document.getElementById('hourly-container');
+  
+  if (weatherContainer) weatherContainer.innerHTML = '<div class="loading">Loading...</div>';
+  if (forecastContainer) forecastContainer.innerHTML = '';
+  if (hourlyContainer) hourlyContainer.innerHTML = '';
 }
 
 function showError(message) {
-  document.getElementById('weather-container').innerHTML = `<div class="error">${message}</div>`;
+  const container = document.getElementById('weather-container');
+  if (container) container.innerHTML = `<div class="error">${message}</div>`;
 }
 
-function updateHeader(city, country) {
-  const el = document.getElementById('header-location-text');
-  if (el) el.textContent = `${city}, ${country}`;
+function showSearchPrompt() {
+  const weatherContainer = document.getElementById('weather-container');
+  const forecastContainer = document.getElementById('forecast-container');
+  const hourlyContainer = document.getElementById('hourly-container');
+  
+  if (weatherContainer) {
+    weatherContainer.innerHTML = `
+      <div class="search-prompt">
+        <h2>Welcome to ClimateLens</h2>
+        <p>Search for a city to get started</p>
+      </div>
+    `;
+  }
+  if (forecastContainer) forecastContainer.innerHTML = '';
+  if (hourlyContainer) hourlyContainer.innerHTML = '';
 }
+
+// REMOVED: old updateHeader() function - now in utils.mjs
 
 async function displayWeather(lat, lon, locationData) {
   try {
@@ -43,19 +74,23 @@ async function displayWeather(lat, lon, locationData) {
       lon: weatherData.lon,
       city,
       country,
-      timezone: locationData?.timezone || enhanced.timezone,
+      timezone: weatherData.timezone || locationData?.timezone || enhanced.timezone,
       fullName: `${city}, ${country}`
     };
+    
+    // SAVE STATE using StorageManager
+    saveCurrentState(finalLocation);
+    currentLocation = finalLocation;
     
     const forecast = await getProcessedForecast(lat, lon);
     currentForecast = forecast;
     
-    currentLocation = finalLocation;
-    updateHeader(city, country);
+    // USE SHARED FUNCTION - updates header on every page
+    updateHeaderText(city, country);
     
     renderLocationBar(finalLocation);
     renderCurrentWeather(weatherData);
-    renderHourly(getHourlyForecast(forecast, 24));
+    renderHourly(weatherData.hourly);
     renderForecast(forecast);
     setupDayClicks();
     updateSaveBtn();
@@ -70,7 +105,7 @@ function setupDayClicks() {
   document.querySelectorAll('.forecast-card').forEach((card, i) => {
     card.style.cursor = 'pointer';
     card.addEventListener('click', () => {
-      const day = getForecastForDay(currentForecast, i);
+      const day = currentForecast?.daily?.[i];
       if (day) renderDayModal(day, currentForecast);
     });
   });
@@ -80,10 +115,10 @@ function updateSaveBtn() {
   const btn = document.getElementById('save-location-btn');
   if (!btn || !currentLocation) return;
   
-  const saved = getSavedLocations();
+  const saved = getSavedLocationsList();
   const isSaved = saved.some(l => 
-    Math.abs(l.lat - currentLocation.lat) < 0.001 && 
-    Math.abs(l.lon - currentLocation.lon) < 0.001
+    Math.abs(parseFloat(l.lat) - currentLocation.lat) < 0.001 && 
+    Math.abs(parseFloat(l.lon) - currentLocation.lon) < 0.001
   );
   
   const text = btn.querySelector('.save-text');
@@ -92,7 +127,7 @@ function updateSaveBtn() {
 
 async function saveCurrent() {
   if (!currentLocation) return;
-  saveLocation(currentLocation);
+  saveToLocationsList(currentLocation);
   updateSaveBtn();
   
   const text = document.querySelector('#save-location-btn .save-text');
@@ -160,30 +195,27 @@ async function handleSearch() {
   const cityName = input.value.trim();
   showLoading();
   
-  const result = await searchCityByName(cityName);
-  
-  if (result) {
+  try {
+    const result = await searchCityByName(cityName);
     await displayWeather(result.lat, result.lon, result);
     input.value = '';
-  } else {
+  } catch (error) {
     showError('City not found. Please try again.');
   }
 }
 
-// FIXED: Added loadInitial() function
+// LOAD INITIAL
 async function loadInitial() {
-  const saved = getSavedLocations();
-  
-  if (saved.length > 0) {
-    await displayWeather(saved[0].lat, saved[0].lon, saved[0]);
-  } else {
-    showLoading();
-    const loc = await getLocation();
-    if (loc) {
-      await displayWeather(loc.lat, loc.lon, loc);
-    } else {
-      showError('Unable to load location. Please search for your city.');
+  if (hasCurrentState()) {
+    const lastLocation = getCurrentState();
+    try {
+      await displayWeather(lastLocation.lat, lastLocation.lon, lastLocation);
+    } catch (error) {
+      console.error('Failed to load saved location:', error);
+      showSearchPrompt();
     }
+  } else {
+    showSearchPrompt();
   }
 }
 
@@ -224,10 +256,11 @@ function setupEvents() {
 
 async function init() {
   try {
-    await loadHeaderFooter();
+    await loadHeaderFooter(); // this now auto-updates header text
     setupEvents();
     await loadInitial();
   } catch (error) {
+    console.error('Init error:', error);
     showError('Failed to initialize app. Please refresh.');
   }
 }

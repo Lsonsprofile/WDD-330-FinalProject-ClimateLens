@@ -1,83 +1,142 @@
-import { 
-  API_KEY, 
-  BASE_URL, 
-  ICON_MAP, 
-  CONDITION_MAP, 
-  getUVIndexText, 
-  windDegToDirection, 
-  calculateDewPoint 
-} from './config.mjs';
+const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
+const BASE_URL = import.meta.env.VITE_WEATHER_API_URL;
 
-export function getWeatherIconUrl(iconCode, size = '2x') {
-  if (!iconCode) return `https://openweathermap.org/img/wn/01d@${size}.png`;
-  const mappedCode = ICON_MAP[iconCode.toLowerCase()] ?? '01d';
-  return `https://openweathermap.org/img/wn/${mappedCode}@${size}.png`;
-}
-
-export async function fetchWeatherData(lat, lon) {
-  const location = `${lat},${lon}`;
-  const days = 5;
-  const url = `${BASE_URL}/forecast.json?key=${API_KEY}&q=${location}&days=${days}&aqi=no&alerts=no`;
-
+// fetch current weather from WeatherAPI
+export async function fetchCurrentWeather(lat, lon) {
+  const latNum = parseFloat(lat);
+  const lonNum = parseFloat(lon);
+  
+  if (isNaN(latNum) || isNaN(lonNum)) {
+    throw new Error(`Invalid coordinates: lat=${lat}, lon=${lon}`);
+  }
+  
+  const url = `${BASE_URL}/current.json?key=${API_KEY}&q=${latNum},${lonNum}&aqi=yes`;
+  
   const response = await fetch(url);
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Weather API error: ${response.status} - ${errorText}`);
+    console.error('WeatherAPI error:', response.status, errorText);
+    throw new Error(`WeatherAPI error: ${response.status}`);
   }
+  
   return await response.json();
 }
 
+// fetch forecast from WeatherAPI
+export async function fetchForecast(lat, lon, days = 5) {
+  const latNum = parseFloat(lat);
+  const lonNum = parseFloat(lon);
+  
+  if (isNaN(latNum) || isNaN(lonNum)) {
+    throw new Error(`Invalid coordinates: lat=${lat}, lon=${lon}`);
+  }
+  
+  const url = `${BASE_URL}/forecast.json?key=${API_KEY}&q=${latNum},${lonNum}&days=${days}&aqi=yes&alerts=yes`;
+  
+  const response = await fetch(url);
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Forecast API error:', response.status, errorText);
+    throw new Error(`Forecast API error: ${response.status}`);
+  }
+  
+  return await response.json();
+}
+
+// get weather icon URL from WeatherAPI
+export function getWeatherIconUrl(iconCode, size = 64) {
+  if (!iconCode) return '/icons/weather.svg';
+  // WeatherAPI returns icons starting with //, add https:
+  return iconCode.startsWith('http') ? iconCode : `https:${iconCode}`;
+}
+
+// get location name from weather data
+export function getLocationNameFromWeather(weatherData) {
+  const city = weatherData.location?.name || 'Unknown';
+  const country = weatherData.location?.country || '';
+  return country ? `${city}, ${country}` : city;
+}
+
+// format time from WeatherAPI format
 export function formatTime(timeString) {
   if (!timeString) return 'N/A';
-  const [hour, minute] = timeString.split(':');
-  const h = parseInt(hour, 10);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  const displayH = h % 12 || 12;
-  return `${displayH.toString().padStart(2, '0')}:${minute} ${ampm}`;
+  const date = new Date(`2000-01-01 ${timeString}`);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
+// convert wind direction from degrees to cardinal
+export function windDegToDirection(degrees) {
+  if (degrees === undefined || degrees === null) return 'N/A';
+  const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+                      'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  const index = Math.round(degrees / 22.5) % 16;
+  return directions[index];
+}
+
+// get all weather data in one object
 export async function getCompleteWeatherData(lat, lon) {
-  const data = await fetchWeatherData(lat, lon);
+  const [current, forecast] = await Promise.all([
+    fetchCurrentWeather(lat, lon),
+    fetchForecast(lat, lon, 5)
+  ]);
   
-  const current = data.current;
-  const forecast = data.forecast.forecastday[0];
-  const location = data.location;
-  
-  const condition = CONDITION_MAP[current.condition?.text] ?? current.condition?.text ?? 'Unknown';
-  const iconCode = current.condition?.text ?? 'clear';
+  const currentData = current.current;
+  const location = current.location;
+  const forecastDay = forecast.forecast?.forecastday?.[0];
   
   return {
-    temp: Math.round(current.temp_c ?? 0),
-    feelsLike: Math.round(current.feelslike_c ?? 0),
-    tempMin: Math.round(forecast.day?.mintemp_c ?? 0),
-    tempMax: Math.round(forecast.day?.maxtemp_c ?? 0),
-    humidity: current.humidity ?? 0,
-    pressure: Math.round(current.pressure_mb ?? 0),
-    dewPoint: calculateDewPoint(current.temp_c, current.humidity),
-    windSpeed: Math.round(current.wind_kph ?? 0),
-    windGust: current.gust_kph ? Math.round(current.gust_kph) : null,
-    windDeg: current.wind_degree ?? 0,
-    windDirection: windDegToDirection(current.wind_degree),
-    visibility: Math.round(current.vis_km ?? 0),
-    cloudCover: current.cloud ?? 0,
-    rainChance: forecast.day?.daily_chance_of_rain ?? 0,
-    condition: condition,
-    description: current.condition?.text ?? 'Unknown',
-    iconCode: iconCode,
-    sunrise: forecast.astro?.sunrise ?? '',
-    sunriseFormatted: formatTime(forecast.astro?.sunrise),
-    sunset: forecast.astro?.sunset ?? '',
-    sunsetFormatted: formatTime(forecast.astro?.sunset),
-    cityName: location.name ?? 'Unknown',
-    countryCode: location.country ?? '',
-    locationName: `${location.name ?? 'Unknown'}, ${location.country ?? ''}`,
-    uvIndex: current.uv ?? 0,
-    uvIndexText: getUVIndexText(current.uv),
-    lat: location.lat,
-    lon: location.lon
+    // Temperature
+    temp: Math.round(currentData.temp_c),
+    feelsLike: Math.round(currentData.feelslike_c),
+    tempMin: Math.round(forecastDay?.day?.mintemp_c || currentData.temp_c),
+    tempMax: Math.round(forecastDay?.day?.maxtemp_c || currentData.temp_c),
+    
+    // Humidity & Pressure
+    humidity: currentData.humidity,
+    pressure: Math.round(currentData.pressure_mb),
+    
+    // Wind
+    windSpeed: Math.round(currentData.wind_kph),
+    windDeg: currentData.wind_degree,
+    windDirection: currentData.wind_dir || windDegToDirection(currentData.wind_degree),
+    
+    // Visibility
+    visibility: Math.round(currentData.vis_km),
+    
+    // Clouds & Rain
+    cloudCover: currentData.cloud,
+    rainChance: forecastDay?.day?.daily_chance_of_rain || 0,
+    uvValue: currentData.uv,
+    
+    // Condition
+    condition: currentData.condition?.text || 'Unknown',
+    description: currentData.condition?.text || 'Unknown',
+    iconCode: currentData.condition?.icon || '',
+    
+    // Sun times
+    sunrise: forecastDay?.astro?.sunrise || '',
+    sunriseFormatted: formatTime(forecastDay?.astro?.sunrise),
+    sunset: forecastDay?.astro?.sunset || '',
+    sunsetFormatted: formatTime(forecastDay?.astro?.sunset),
+    
+    // Location (ensure numbers)
+    lat: parseFloat(location.lat),
+    lon: parseFloat(location.lon),
+    cityName: location.name,
+    countryCode: location.country,
+    locationName: getLocationNameFromWeather(current),
+    timezone: location.tz_id || 'UTC',
+    
+    // Hourly forecast data
+    hourly: forecast.forecast?.forecastday?.[0]?.hour?.map(h => ({
+      time: h.time?.split(' ')[1] || '',
+      temp: Math.round(h.temp_c),
+      condition: h.condition?.text || '',
+      iconCode: h.condition?.icon || '',
+      humidity: h.humidity,
+      windSpeed: Math.round(h.wind_kph),
+      rainChance: h.chance_of_rain || 0,
+      uvValue: h.uv
+    })) || []
   };
-}
-
-export async function getRawForecast(lat, lon) {
-  return await fetchWeatherData(lat, lon);
 }
