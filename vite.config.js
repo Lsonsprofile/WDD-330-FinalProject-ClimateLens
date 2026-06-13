@@ -2,9 +2,9 @@ import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  root: 'src',           // index.html lives in src/
+  root: 'src',
   envDir: '..',
-  base: './',
+  base: '/',           // CHANGED: was './', now '/'
   build: {
     outDir: '../dist',
     emptyOutDir: true,
