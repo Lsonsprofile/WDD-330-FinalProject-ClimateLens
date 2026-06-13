@@ -1,7 +1,3 @@
-// ============================================
-// UNIT CONVERTER - Used across all pages
-// ============================================
-
 import { getSettings } from './StorageManager.mjs';
 
 const DEFAULTS = {
