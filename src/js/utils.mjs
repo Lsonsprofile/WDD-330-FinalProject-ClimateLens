@@ -14,9 +14,6 @@ export function renderWithTemplate(template, parentElement, callback, data) {
   if (callback) callback(data);
 }
 
-// ============================================
-// SHARED HEADER UPDATE - works on every page
-// ============================================
 
 export function updateHeaderText(city, country) {
   const el = document.getElementById('header-location-text');

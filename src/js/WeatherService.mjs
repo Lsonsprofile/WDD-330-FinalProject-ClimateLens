@@ -144,7 +144,7 @@ export async function getCompleteWeatherData(lat, lon) {
     hourly: forecast.forecast?.forecastday?.[0]?.hour?.map(h => ({
       time: h.time?.split(' ')[1] || '',
       temp: Math.round(h.temp_c),
-      feelsLike: Math.round(h.feelslike_c),  // ADD THIS
+      feelsLike: Math.round(h.feelslike_c),  
       condition: h.condition?.text || '',
       iconCode: h.condition?.icon || '',
       humidity: h.humidity,

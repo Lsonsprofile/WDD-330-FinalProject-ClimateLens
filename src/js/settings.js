@@ -8,7 +8,7 @@ import {
   getSettings,
   saveSettings,
   clearAllData,
-  KEYS                    // ADD THIS IMPORT
+  KEYS                   // added this to import storage key
 } from './StorageManager.mjs';
 
 const DEFAULT_SETTINGS = {

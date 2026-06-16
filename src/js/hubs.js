@@ -49,7 +49,6 @@ function renderHubs() {
   renderCurrencyConverter('currency-converter-nexus');
   renderMap('map-nexus');
   renderRecentSearches('recent-nexus', () => {
-    console.log('Recent searches updated');
   });
 }
 
