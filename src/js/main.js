@@ -3,6 +3,7 @@ import '../css/small.css';
 import { loadHeaderFooter, updateHeaderText } from './utils.mjs';
 import { getCompleteWeatherData } from './WeatherService.mjs';
 import { getProcessedForecast } from './ForecastManager.mjs';
+import { getWeatherAlerts, renderWeatherAlerts } from './WeatherAlert.mjs';
 import { 
   searchCityByName, 
   getSearchSuggestions, 
@@ -15,7 +16,7 @@ import {
   hasCurrentState,
   saveToLocationsList,
   getSavedLocationsList,
-  saveRecentSearch        // ADDED
+  saveRecentSearch      
 } from './StorageManager.mjs';
 import { renderCurrentWeather, renderLocationBar, renderHourly, renderForecast, renderDayModal, hideDayModal } from './UIController.mjs';
 
@@ -77,11 +78,9 @@ async function displayWeather(lat, lon, locationData) {
       fullName: `${city}, ${country}`
     };
     
-    // SAVE STATE using StorageManager
     saveCurrentState(finalLocation);
     currentLocation = finalLocation;
     
-    // ADDED: Save to recent searches
     saveRecentSearch({
       lat: finalLocation.lat,
       lon: finalLocation.lon,
@@ -92,7 +91,6 @@ async function displayWeather(lat, lon, locationData) {
     const forecast = await getProcessedForecast(lat, lon);
     currentForecast = forecast;
     
-    // USE SHARED FUNCTION - updates header on every page
     updateHeaderText(city, country);
     
     renderLocationBar(finalLocation);
@@ -101,6 +99,13 @@ async function displayWeather(lat, lon, locationData) {
     renderForecast(forecast);
     setupDayClicks();
     updateSaveBtn();
+
+    // Pass raw forecast data to avoid extra API call and cache issues
+    const alerts = await getWeatherAlerts(lat, lon, city, forecast?.raw);
+    const wasDismissed = sessionStorage.getItem('alertsDismissed');
+    if (!wasDismissed) {
+      renderWeatherAlerts(alerts);
+    }
 
   } catch (error) {
     console.error('Display weather error:', error);
@@ -144,7 +149,6 @@ async function saveCurrent() {
   }
 }
 
-// AUTOCOMPLETE
 let debounceTimer;
 async function handleInput(e) {
   const query = e.target.value.trim();
@@ -188,7 +192,6 @@ async function handleInput(e) {
         suggestionsBox.innerHTML = '';
         suggestionsBox.classList.add('hidden');
         
-        // ADDED: Save to recent searches on suggestion click
         saveRecentSearch({ lat, lon, city, country });
         
         showLoading();
@@ -204,11 +207,10 @@ async function handleSearch() {
   
   const cityName = input.value.trim();
   showLoading();
-  
+  sessionStorage.removeItem('alertsDismissed');
   try {
     const result = await searchCityByName(cityName);
     
-    // ADDED: Save to recent searches on manual search
     saveRecentSearch({
       lat: result.lat,
       lon: result.lon,
@@ -223,7 +225,6 @@ async function handleSearch() {
   }
 }
 
-// LOAD INITIAL
 async function loadInitial() {
   if (hasCurrentState()) {
     const lastLocation = getCurrentState();

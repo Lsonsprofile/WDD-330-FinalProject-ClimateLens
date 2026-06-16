@@ -3,13 +3,14 @@ import '../css/small.css';
 import '../css/hub.css';
 import '../css/hub-small.css';
 import { loadHeaderFooter, updateHeaderText } from './utils.mjs';
-import { renderSimpleConverter } from './WeatherConverter.mjs';
+import { renderWeatherConverterCard } from './WeatherConverter.mjs';
+import { renderCurrencyConverter } from './CurrencyConverter.mjs';
 import { renderMap } from './WeatherMap.mjs';
 import { renderRecentSearches } from './RecentSearches.mjs';
 import { 
   getCurrentState, 
   hasCurrentState,
-  saveRecentSearch        // ADD THIS IMPORT
+  saveRecentSearch
 } from './StorageManager.mjs';
 
 function renderHubs() {
@@ -31,14 +32,25 @@ function renderHubs() {
       </div>
     </div>
     
+    <section class="converter-grid-section" aria-labelledby="converters-heading">
+      <h2 id="converters-heading" class="section-heading">Converters</h2>
+      <div class="converter-grid">
+        <div id="weather-converter-nexus"></div>
+        <div id="currency-converter-nexus"></div>
+      </div>
+    </section>
+    
     <div class="hub-bottom">
       <div id="recent-nexus"></div>
     </div>
   `;
 
-  renderSimpleConverter('converter-nexus');
+  renderWeatherConverterCard('weather-converter-nexus');
+  renderCurrencyConverter('currency-converter-nexus');
   renderMap('map-nexus');
-  renderRecentSearches('recent-nexus');
+  renderRecentSearches('recent-nexus', () => {
+    console.log('Recent searches updated');
+  });
 }
 
 // ADD THIS FUNCTION: Handle location changes from recent searches

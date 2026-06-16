@@ -1,7 +1,3 @@
-// ============================================
-// WEATHER MAP - Leaflet or simple embed
-// ============================================
-
 export function renderMap(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;

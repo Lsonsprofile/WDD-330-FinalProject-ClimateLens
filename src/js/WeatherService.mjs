@@ -1,6 +1,14 @@
 const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
 const BASE_URL = import.meta.env.VITE_WEATHER_API_URL;
 
+// Cache for last forecast response
+let lastForecastData = null;
+
+// Get cached forecast data
+export function getLastForecastData() {
+  return lastForecastData;
+}
+
 // fetch current weather from WeatherAPI
 export async function fetchCurrentWeather(lat, lon) {
   const latNum = parseFloat(lat);
@@ -40,7 +48,12 @@ export async function fetchForecast(lat, lon, days = 5) {
     throw new Error(`Forecast API error: ${response.status}`);
   }
   
-  return await response.json();
+  const data = await response.json();
+  
+  // Cache the forecast data for alerts
+  lastForecastData = data;
+  
+  return data;
 }
 
 // get weather icon URL from WeatherAPI
@@ -88,8 +101,8 @@ export async function getCompleteWeatherData(lat, lon) {
     // Temperature
     temp: Math.round(currentData.temp_c),
     feelsLike: Math.round(currentData.feelslike_c),
+    dewPoint: Math.min(Math.round(currentData.dewpoint_c || 0), Math.round(currentData.temp_c)),
     tempMin: Math.round(forecastDay?.day?.mintemp_c || currentData.temp_c),
-    tempMax: Math.round(forecastDay?.day?.maxtemp_c || currentData.temp_c),
     
     // Humidity & Pressure
     humidity: currentData.humidity,
@@ -131,6 +144,7 @@ export async function getCompleteWeatherData(lat, lon) {
     hourly: forecast.forecast?.forecastday?.[0]?.hour?.map(h => ({
       time: h.time?.split(' ')[1] || '',
       temp: Math.round(h.temp_c),
+      feelsLike: Math.round(h.feelslike_c),  // ADD THIS
       condition: h.condition?.text || '',
       iconCode: h.condition?.icon || '',
       humidity: h.humidity,

@@ -43,6 +43,10 @@
   .converter-headline {
     font-size: 1.5rem;
   }
+  .converter-grid-section .converter-grid {
+    grid-template-columns: 1fr;
+  }
+  
 }
 
 /* Mobile */

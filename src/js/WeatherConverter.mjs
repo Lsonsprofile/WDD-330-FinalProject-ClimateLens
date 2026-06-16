@@ -66,7 +66,7 @@ export function renderSimpleConverter(containerId) {
 
   container.innerHTML = `
     <div class="simple-converter">
-      <h2 class="converter-headline">&#9729; Weather Unit Converter</h2>
+      <h2 class="converter-headline">&#9729;Unit Converter</h2>
       
       <select id="category-select" class="category-dropdown">
         <option value="temperature">Temperature</option>
@@ -100,13 +100,11 @@ function attachListeners() {
   const categorySelect = document.getElementById('category-select');
   const sections = document.querySelectorAll('.converter-section');
 
-  // Switch category
   categorySelect.addEventListener('change', (e) => {
     sections.forEach(s => s.classList.remove('active'));
     document.querySelector(`.converter-section[data-category="${e.target.value}"]`).classList.add('active');
   });
 
-  // Input conversions
   const inputs = document.querySelectorAll('.converter-section input');
 
   inputs.forEach(input => {
@@ -116,7 +114,6 @@ function attachListeners() {
       const unit = e.target.dataset.unit;
 
       if (isNaN(val)) {
-        // Clear all in this section
         document.querySelectorAll(`.converter-section[data-category="${category}"] input`).forEach(i => {
           if (i !== e.target) i.value = '';
         });
@@ -133,4 +130,21 @@ function attachListeners() {
       });
     });
   });
+}
+
+export function renderWeatherConverterCard(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  container.innerHTML = `
+    <section class="converter-card weather-converter" aria-labelledby="weather-title">
+      <header class="card-header">
+        <figure class="card-icon" aria-hidden="true">&#9729;</figure>
+        <h3 id="weather-title" class="card-title">Weather Converter</h3>
+      </header>
+      <div id="weather-converter-inner"></div>
+    </section>
+  `;
+  
+  renderSimpleConverter('weather-converter-inner');
 }

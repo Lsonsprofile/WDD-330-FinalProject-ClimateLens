@@ -170,6 +170,17 @@ export const saveSettings = (settings) => {
   return newSettings;
 };
 
+// ADD THIS after clearRecentSearches
+export const removeRecentSearch = (index) => {
+  const recent = recentStore.get();
+  if (!recent[index]) {
+    return false;
+  }
+  recent.splice(index, 1);
+  localStorage.setItem(KEYS.RECENT, JSON.stringify(recent));
+  return true;
+};
+
 // Get fresh settings every time (not cached)
 export const getSettings = () => {
   const stored = localStorage.getItem(KEYS.SETTINGS);

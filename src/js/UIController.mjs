@@ -70,7 +70,7 @@ export function renderCurrentWeather(data) {
         ${renderStat('/icons/pressure.svg', 'Pressure', `${data.pressure} hPa`)}
         ${renderStat('/icons/clouds.svg', 'Cloud Cover', `${data.cloudCover}%`)}
         ${renderStat('/icons/rain-chance.svg', 'Rain Chance', `${data.rainChance}%`)}
-        ${renderStat('/icons/dew-point.svg', 'Dew Point', formatTemp(data.feelsLike))}
+        ${renderStat('/icons/dew-point.svg', 'Dew Point', formatTemp(data.dewPoint))}
       </div>
       <div class="footer-times">
         ${renderTimeSlot('/icons/sunrise.svg', 'Sunrise', data.sunriseFormatted)}
@@ -122,9 +122,23 @@ export function renderHourly(hourlyData) {
           return `
             <div class="hourly-item">
               <span class="hourly-time">${h.time}</span>
-              <img src="${iconUrl}" alt="${h.condition}" class="hourly-icon" width="40" height="40" onerror="this.src='/icons/weather.svg'">
+              <div class="hourly-icon-wrap">
+                <img src="${iconUrl}" alt="${h.condition}" class="hourly-icon" width="40" height="40" onerror="this.src='/icons/weather.svg'">
+              </div>
               <span class="hourly-temp">${formatTemp(h.temp)}</span>
-              ${h.rainChance > 0 ? `<span class="hourly-rain">${h.rainChance}%</span>` : ''}
+              <span class="hourly-feels">Feels ${formatTemp(h.feelsLike)}</span>
+              <div class="hourly-details">
+                <span class="hourly-humidity">
+                  <img src="/icons/humidity.svg" alt="humidity" onerror="this.style.display='none'">
+                  ${h.humidity}%
+                </span>
+                <span class="hourly-wind">
+                  <img src="/icons/wind.svg" alt="wind" onerror="this.style.display='none'">
+                  ${formatWindSpeed(h.windSpeed)}
+                </span>
+              </div>
+              ${h.rainChance > 0 ? `<span class="hourly-pop">${h.rainChance}% rain</span>` : ''}
+              <span class="hourly-desc">${h.condition}</span>
             </div>
           `;
         }).join('')}

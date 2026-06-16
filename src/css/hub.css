@@ -71,23 +71,13 @@
 
 /* Simple Converter */
 .simple-converter {
-  max-width: 600px;
+  max-width: 100%;
   margin: 1rem auto;
-  background: var(--color-bg-primary);
+  background: var(--color-text-primary);
   border-radius: 5px;
   padding: 32px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border);
-}
-
-.converter-headline {
-  font-family: var(--font-primary);
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  text-align: center;
-  margin-bottom: 24px;
-  letter-spacing: -0.3px;
 }
 
 /* Category Dropdown */
@@ -136,7 +126,7 @@
   font-family: var(--font-secondary);
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: var(--color-bg-primary);
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -248,7 +238,7 @@
 
 .card-icon {
   font-size: 28px;
-  background: var(--color-sky-blue-light);
+  background: var(--color-text-primary);
   width: 48px;
   height: 48px;
   display: flex;
@@ -272,6 +262,7 @@
   align-items: flex-end;
   gap: 12px;
   margin-bottom: 24px;
+  padding: 5px;
 }
 
 /* Input Groups */
@@ -282,12 +273,12 @@
 
 .input-label {
   display: block;
-  font-family: var(--font-secondary);
-  font-size: 0.7rem;
+  font-family: var(--font-primary);
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--color-text-muted);
+  color: var(--color-text-primary);
   margin-bottom: 6px;
 }
 
@@ -376,7 +367,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--color-text-muted);
+  color: var(--color-text-primary);
 }
 
 /* Quick Chips */
@@ -496,14 +487,6 @@
   margin: 0.5rem auto;
 }
 
-/* Header layout */
-.recent-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
 .recent-icon {
   font-size: 1.25rem;
 }
@@ -571,3 +554,121 @@
   text-align: center;
   margin: 16px 0;
 }
+
+/* Recent header with count and clear all */
+.recent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.recent-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.recent-count {
+  font-family: var(--font-secondary);
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  background: var(--color-cloud-gray);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.recent-clear-all {
+  font-family: var(--font-secondary);
+  font-size: 0.75rem;
+  color: var(--color-text-primary);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  padding: 4px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recent-clear-all:hover {
+  color: var(--color-sunny-yellow);
+  border-color: var(--color-sunny-yellow);
+  background: var(--color-sunny-yellow-light);
+}
+
+/* Recent item actions */
+.recent-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recent-delete {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.recent-item:hover .recent-delete {
+  opacity: 1;
+}
+
+.recent-delete:hover {
+  background: var(--color-text-secondary);
+  color: var(--color-white);
+}
+
+.converter-grid-section {
+  max-width: 1400px;
+  margin: 1rem auto;
+  padding: 0 0.5rem;
+}
+
+.section-heading {
+  font-family: var(--font-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color:var(--color-bg-primary);
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.converter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+/* Currency converter specific */
+.currency-converter .converter-result {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 10px 12px;
+  background: var(--color-bg-secondary);
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+}
+
+.currency-converter {
+  background-color: var(--color-sky-blue);
+}
+
+
+
+
+
+
