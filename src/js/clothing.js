@@ -45,8 +45,9 @@ function showSearchPrompt() {
   }
 }
 
-function renderWardrobeGuide(weatherData) {
-  const revelation = getClothingRecommendation(weatherData);
+async function renderWardrobeGuide(weatherData) {
+  // Now async because getClothingRecommendation is async
+  const revelation = await getClothingRecommendation(weatherData);
   if (!revelation || !revelation.outfit) {
     showError('Unable to decode wardrobe wisdom.');
     return;
@@ -60,7 +61,6 @@ function renderWardrobeGuide(weatherData) {
     ? extras.map(e => e.name).join(' & ')
     : 'None needed';
 
-  // Use converted temperature
   const displayTemp = formatTemp(weatherData.temp);
 
   container.innerHTML = `
@@ -214,7 +214,7 @@ async function displayClothing(lat, lon, locationData) {
     
     updateHeaderText(city, country);
     renderLocationBar(finalLocation);
-    renderWardrobeGuide(weatherData);
+    await renderWardrobeGuide(weatherData);
 
   } catch (error) {
     console.error('Display clothing error:', error);

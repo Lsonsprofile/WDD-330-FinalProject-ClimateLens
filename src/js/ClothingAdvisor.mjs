@@ -1,9 +1,35 @@
-import { getClothingByTemperature, UMBRELLA } from './clothingData.mjs';
+// Fetch clothing data from JSON file
+let clothingData = null;
 
-export function getClothingRecommendation(weatherOracle) {
+async function loadClothingData() {
+  if (clothingData) return clothingData;
+  
+  try {
+    const response = await fetch('/json/clothingData.json');
+    
+    if (!response.ok) {
+      throw new Error(`Failed to load clothing data: ${response.status}`);
+    }
+    
+    clothingData = await response.json();
+    return clothingData;
+  } catch (error) {
+    console.error('Error loading clothing data:', error);
+    return null;
+  }
+}
+
+export async function getClothingRecommendation(weatherOracle) {
   const { temp, rainChance, uvValue, windSpeed, condition } = weatherOracle;
   
-  const garmentScripture = getClothingByTemperature(temp);
+  // Load clothing data from JSON
+  const data = await loadClothingData();
+  if (!data) {
+    console.error('Failed to load clothing data');
+    return null;
+  }
+  
+  const garmentScripture = getClothingByTemperature(temp, data);
   
   if (!garmentScripture || !garmentScripture.outfit) {
     console.error('No garment scripture found for temp:', temp);
@@ -15,10 +41,10 @@ export function getClothingRecommendation(weatherOracle) {
   
   // Precipitation prophecy
   if (rainChance > 60) {
-    adornments.push(UMBRELLA);
+    adornments.push(data.AQUEOUS_BARRIER);
     theOmens.push(`Rain probability is ${rainChance}% — summon your aqueous barrier.`);
   } else if (rainChance > 30) {
-    adornments.push(UMBRELLA);
+    adornments.push(data.AQUEOUS_BARRIER);
     theOmens.push(`Rain probability is ${rainChance}% — consider the celestial canopy.`);
   }
   
@@ -62,7 +88,7 @@ export function getClothingRecommendation(weatherOracle) {
     theOmens.push('Mist veil present — enhance your visibility signature.');
   }
   
-  // FIXED: Filter out any adornments without a name
+  // Filter out any adornments without a name
   const validAdornments = adornments.filter(a => a && a.name);
   
   return {
@@ -72,6 +98,27 @@ export function getClothingRecommendation(weatherOracle) {
     summary: forgeProphecy(garmentScripture, validAdornments, theOmens),
     warnings: theOmens
   };
+}
+
+function getClothingByTemperature(temp, data) {
+  const rules = data.GARMENT_SCRIPTURES.map(scripture => ({
+    min: scripture.thermalFloor,
+    max: scripture.thermalCeiling,
+    status: scripture.elementalSeal,
+    heading: scripture.incantation,
+    description: scripture.prophecy,
+    outfit: {
+      top: scripture.vestments.crown,
+      topImage: scripture.vestments.crownVision,
+      bottom: scripture.vestments.foundation,
+      bottomImage: scripture.vestments.foundationVision,
+      footwear: scripture.vestments.anchors,
+      footwearImage: scripture.vestments.anchorsVision,
+      extras: scripture.vestments.adornments.map(a => ({ name: a.essence, image: a.vision }))
+    }
+  }));
+  
+  return rules.find(rule => temp >= rule.min && temp < rule.max) || rules[rules.length - 1];
 }
 
 function forgeProphecy(garmentScripture, adornments, theOmens) {
