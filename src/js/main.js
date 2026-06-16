@@ -100,12 +100,11 @@ async function displayWeather(lat, lon, locationData) {
     setupDayClicks();
     updateSaveBtn();
 
-    // Pass raw forecast data to avoid extra API call and cache issues
+    // Clear alert dismissal for new weather data
+    sessionStorage.removeItem('alertsDismissed');
+    
     const alerts = await getWeatherAlerts(lat, lon, city, forecast?.raw);
-    const wasDismissed = sessionStorage.getItem('alertsDismissed');
-    if (!wasDismissed) {
-      renderWeatherAlerts(alerts);
-    }
+    renderWeatherAlerts(alerts);
 
   } catch (error) {
     console.error('Display weather error:', error);
@@ -207,7 +206,7 @@ async function handleSearch() {
   
   const cityName = input.value.trim();
   showLoading();
-  sessionStorage.removeItem('alertsDismissed');
+  
   try {
     const result = await searchCityByName(cityName);
     
