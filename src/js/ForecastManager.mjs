@@ -7,7 +7,7 @@ export async function getProcessedForecast(lat, lon) {
   if (!data.forecast?.forecastday) return null;
   
   return {
-    raw: data, // ADD THIS: Return raw data for alerts
+    raw: data, //  Return raw data for alerts
     daily: data.forecast.forecastday.map(day => ({
       day: new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' }),
       fullDate: new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),

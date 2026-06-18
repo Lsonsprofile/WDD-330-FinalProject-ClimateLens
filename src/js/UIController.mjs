@@ -1,12 +1,10 @@
 import { formatTemp, formatWindSpeed, getTempUnit } from "./UnitConverter.mjs";
 
-// Local icon helper (WeatherService.mjs doesn't exist or is different)
 function getWeatherIconUrl(iconCode) {
   if (!iconCode) return '/icons/weather.svg';
   return iconCode.startsWith('http') ? iconCode : `https:${iconCode}`;
 }
 
-// location bar
 export function renderLocationBar(locationData) {
   const time = new Date().toLocaleTimeString('en-US', {
     hour: 'numeric',
@@ -41,7 +39,6 @@ export function renderLocationBar(locationData) {
   }
 }
 
-// current weather card
 export function renderCurrentWeather(data) {
   const displayCondition = data.condition === 'Clear' || data.condition === 'Sunny' ? 'Sunny' : data.condition;
   const iconUrl = getWeatherIconUrl(data.iconCode);
@@ -107,7 +104,6 @@ function renderTimeSlot(icon, label, value) {
   `;
 }
 
-// hourly forecast
 export function renderHourly(hourlyData) {
   if (!hourlyData?.length) return;
   
@@ -152,7 +148,6 @@ export function renderHourly(hourlyData) {
   }
 }
 
-// forecast cards
 export function renderForecast(forecastData) {
   if (!forecastData?.daily?.length) {
     const container = document.getElementById('forecast-container');
@@ -179,7 +174,7 @@ function renderForecastCard(day) {
   const iconUrl = getWeatherIconUrl(day.iconCode);
   
   return `
-    <div class="forecast-card" data-day="${day.day}">
+    <div class="forecast-card">
       <div class="forecast-day">${day.day}</div>
       <div class="forecast-date">${day.fullDate}</div>
       <img src="${iconUrl}" alt="${day.condition}" class="forecast-icon" onerror="this.src='/icons/weather.svg'">
@@ -206,43 +201,4 @@ function renderForecastCard(day) {
       </div>
     </div>
   `;
-}
-
-// day detail modal
-export function renderDayModal(dayData, forecastData) {
-  if (!dayData) return;
-  
-  const modal = document.createElement('div');
-  modal.id = 'day-detail-modal';
-  modal.className = 'modal-overlay';
-  
-  const iconUrl = getWeatherIconUrl(dayData.iconCode);
-  
-  modal.innerHTML = `
-    <div class="modal-content">
-      <button class="close-btn">&times;</button>
-      <h3>${dayData.day} - ${dayData.fullDate}</h3>
-      <div class="detail-main">
-        <img src="${iconUrl}" alt="${dayData.condition}" onerror="this.src='/icons/weather.svg'">
-        <div class="detail-temps">
-          <span class="detail-high">${formatTemp(dayData.tempMax)}</span>
-          <span class="detail-low">${formatTemp(dayData.tempMin)}</span>
-        </div>
-        <p class="detail-condition">${dayData.condition}</p>
-      </div>
-      <div class="detail-stats">
-        <div class="detail-stat"><span>Humidity</span><span>${dayData.humidityAvg}%</span></div>
-        <div class="detail-stat"><span>Wind</span><span>${formatWindSpeed(dayData.windSpeedAvg)}</span></div>
-        <div class="detail-stat"><span>Rain Chance</span><span>${dayData.rainChanceMax}%</span></div>
-        <div class="detail-stat"><span>UV Index</span><span>${dayData.uvValue || 'N/A'}</span></div>
-      </div>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-}
-
-export function hideDayModal() {
-  const modal = document.getElementById('day-detail-modal');
-  if (modal) modal.remove();
 }

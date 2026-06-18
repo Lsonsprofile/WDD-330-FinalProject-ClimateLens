@@ -18,7 +18,7 @@ import {
   getSavedLocationsList,
   saveRecentSearch      
 } from './StorageManager.mjs';
-import { renderCurrentWeather, renderLocationBar, renderHourly, renderForecast, renderDayModal, hideDayModal } from './UIController.mjs';
+import { renderCurrentWeather, renderLocationBar, renderHourly, renderForecast } from './UIController.mjs';
 
 let currentLocation = null;
 let currentForecast = null;
@@ -97,10 +97,8 @@ async function displayWeather(lat, lon, locationData) {
     renderCurrentWeather(weatherData);
     renderHourly(weatherData.hourly);
     renderForecast(forecast);
-    setupDayClicks();
     updateSaveBtn();
 
-    // Clear alert dismissal for new weather data
     sessionStorage.removeItem('alertsDismissed');
     
     const alerts = await getWeatherAlerts(lat, lon, city, forecast?.raw);
@@ -110,16 +108,6 @@ async function displayWeather(lat, lon, locationData) {
     console.error('Display weather error:', error);
     showError('Failed to load weather. Please try again.');
   }
-}
-
-function setupDayClicks() {
-  document.querySelectorAll('.forecast-card').forEach((card, i) => {
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', () => {
-      const day = currentForecast?.daily?.[i];
-      if (day) renderDayModal(day, currentForecast);
-    });
-  });
 }
 
 function updateSaveBtn() {
@@ -265,12 +253,6 @@ function setupEvents() {
   }
   
   document.getElementById('save-location-btn')?.addEventListener('click', saveCurrent);
-  
-  document.addEventListener('click', e => {
-    if (e.target.classList.contains('close-btn') || e.target.id === 'day-detail-modal') {
-      hideDayModal();
-    }
-  });
 }
 
 async function init() {
