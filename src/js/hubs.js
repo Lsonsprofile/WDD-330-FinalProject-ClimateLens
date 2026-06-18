@@ -20,7 +20,7 @@ function renderHubs() {
   container.innerHTML = `
     <div class="hubs-welcome">
       <h1>Location Hub</h1>
-      <p>Your location at a glance.</p>
+      <p>Location insights in one place.</p>
     </div>
     
     <div class="hub-dashboard">
