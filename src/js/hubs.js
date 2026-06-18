@@ -19,7 +19,7 @@ function renderHubs() {
 
   container.innerHTML = `
     <div class="hubs-welcome">
-      <h1>Weather Hub</h1>
+      <h1>Location Hub</h1>
       <p>Your centralized weather dashboard.</p>
     </div>
     
