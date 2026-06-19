@@ -2,6 +2,7 @@ import '../css/large.css';
 import '../css/small.css';
 import '../css/settings.css';
 import { loadHeaderFooter, updateHeaderText } from './utils.mjs';
+import { setActiveNavLink } from './navigation.mjs';
 import { 
   getCurrentState, 
   hasCurrentState,
@@ -161,7 +162,7 @@ function notifyOtherTabs() {
 async function init() {
   try {
     await loadHeaderFooter();
-    
+    setActiveNavLink();
     if (hasCurrentState()) {
       const loc = getCurrentState();
       updateHeaderText(loc.city, loc.country);

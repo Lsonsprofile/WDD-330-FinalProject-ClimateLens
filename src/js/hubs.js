@@ -7,6 +7,7 @@ import { renderWeatherConverterCard } from './WeatherConverter.mjs';
 import { renderCurrencyConverter } from './CurrencyConverter.mjs';
 import { renderMap } from './WeatherMap.mjs';
 import { renderRecentSearches } from './RecentSearches.mjs';
+import { setActiveNavLink } from './navigation.mjs';
 import { 
   getCurrentState, 
   hasCurrentState,
@@ -74,7 +75,7 @@ function handleLocationChange(event) {
 async function init() {
   try {
     await loadHeaderFooter();
-    
+    setActiveNavLink();
     // Listen for location changes from recent searches
     window.addEventListener('locationChanged', handleLocationChange);
     

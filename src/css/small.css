@@ -28,6 +28,10 @@
       padding: 0.5rem;
       justify-content: center;
     }
+    .nav-link.active {
+      background-color: var(--color-cloud-gray);
+      height: 35px;
+    }
   }
 
   .header-actions {

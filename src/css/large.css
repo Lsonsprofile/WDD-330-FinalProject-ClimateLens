@@ -128,7 +128,7 @@ main {
         &.active {
           padding: 0.1rem 0.5rem;
           border-radius: 5px;
-          border: 1px var(--color-border) solid;
+          border: 1px var(--color-bg-primary) solid;
         }
 
         .nav-icon {

@@ -2,6 +2,7 @@ import '../css/large.css';
 import '../css/small.css';
 import { loadHeaderFooter, updateHeaderText } from './utils.mjs';
 import { getCompleteWeatherData } from './WeatherService.mjs';
+import { setActiveNavLink } from './navigation.mjs';
 import { 
   searchCityByName, 
   getSearchSuggestions, 
@@ -336,6 +337,7 @@ function setupEvents() {
 async function init() {
   try {
     await loadHeaderFooter();
+    setActiveNavLink();
     setupEvents();
     await loadInitial();
   } catch (error) {
